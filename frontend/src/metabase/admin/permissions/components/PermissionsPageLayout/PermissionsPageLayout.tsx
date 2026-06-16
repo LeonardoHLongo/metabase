@@ -13,11 +13,11 @@ import {
 } from "metabase/admin/permissions/components/PermissionsPageLayout/PermissionsPageLayout.styled";
 import { getIsHelpReferenceOpen } from "metabase/admin/permissions/selectors/help-reference";
 import type { PermissionsGraphDiff } from "metabase/admin/permissions/types";
+import { useUpdateSettingMutation } from "metabase/api";
 import { ConfirmModal } from "metabase/common/components/ConfirmModal";
 import { LeaveRouteConfirmModal } from "metabase/common/components/LeaveConfirmModal";
 import { useToggle } from "metabase/common/hooks/use-toggle";
 import { useDispatch, useSelector } from "metabase/redux";
-import { updateUserSetting } from "metabase/redux/settings";
 import type { Route } from "metabase/router";
 import { push } from "metabase/router";
 import {
@@ -89,6 +89,7 @@ export function PermissionsPageLayout({
 
   const isHelpReferenceOpen = useSelector(getIsHelpReferenceOpen);
   const dispatch = useDispatch();
+  const [updateSetting] = useUpdateSettingMutation();
 
   const navigateToTab = (tab: PermissionsPageTab) =>
     dispatch(push(`/admin/permissions/${tab}`));
@@ -103,9 +104,7 @@ export function PermissionsPageLayout({
 
   const handleDimissSplitPermsModal = () => {
     disableSplitPermsModal();
-    dispatch(
-      updateUserSetting({ key: "show-updated-permission-modal", value: false }),
-    );
+    updateSetting({ key: "show-updated-permission-modal", value: false });
   };
 
   return (

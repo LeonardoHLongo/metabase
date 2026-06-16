@@ -8,7 +8,7 @@ import { runRtkEndpoint } from "metabase/api/utils/run-rtk-endpoint";
 import { trackUserInvited } from "metabase/common/analytics";
 import { createDatabase } from "metabase/redux/databases";
 import {
-  initializeSettings,
+  refreshSiteSettings,
   updateSetting,
   updateSettings,
 } from "metabase/redux/settings";
@@ -116,7 +116,7 @@ export const submitUser = createAsyncThunk<void, UserInfo, ThunkConfig>(
     MetabaseSettings.set("setup-token", null);
     dispatch(goToNextStep());
     //  load the settings after the user is logged, needed later by setEmbeddingHomepageFlags
-    dispatch(initializeSettings());
+    dispatch(refreshSiteSettings());
   },
 );
 
