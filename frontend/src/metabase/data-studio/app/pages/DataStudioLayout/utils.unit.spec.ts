@@ -3,6 +3,7 @@ import { getCurrentTab } from "./utils";
 describe("getCurrentTab", () => {
   it.each`
     pathname                                              | expectedTab
+    ${"/data-studio/guide"}                               | ${"guide"}
     ${"/data-studio/glossary"}                            | ${"glossary"}
     ${"/data-studio/glossary/some-path"}                  | ${"glossary"}
     ${"/data-studio/transforms/jobs"}                     | ${"jobs"}
@@ -16,6 +17,8 @@ describe("getCurrentTab", () => {
     ${"/data-studio/library"}                             | ${"library"}
     ${"/data-studio/library/collections/123"}             | ${"library"}
     ${"/data-studio/library/metrics/456"}                 | ${"library"}
+    ${"/data-studio/library/metrics/456/overview"}        | ${"library"}
+    ${"/data-studio/library/tables/42"}                   | ${"library"}
     ${"/data-studio/transforms/runs"}                     | ${"runs"}
     ${"/data-studio/transforms/runs?page=2"}              | ${"runs"}
     ${"/data-studio/transforms"}                          | ${"transforms"}
@@ -23,7 +26,7 @@ describe("getCurrentTab", () => {
     ${"/data-studio/transforms/new/query"}                | ${"transforms"}
     ${"/data-studio/data"}                                | ${"data"}
     ${"/data-studio/data/database/1"}                     | ${"data"}
-    ${"/data-studio"}                                     | ${"data"}
+    ${"/data-studio"}                                     | ${"guide"}
   `(
     "should return '$expectedTab' for pathname '$pathname'",
     ({ pathname, expectedTab }) => {

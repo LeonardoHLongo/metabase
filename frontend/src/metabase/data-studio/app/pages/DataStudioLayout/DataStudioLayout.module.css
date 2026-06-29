@@ -79,6 +79,29 @@
   right: 0.25rem;
 }
 
-.upperGroup {
+.navSections {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+}
+
+.navSection {
+  margin-bottom: 24px;
+}
+
+.guideSection {
+  margin-top: 16px;
+}
+
+.navSection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionHeading {
+  color: var(--mb-color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.45px;
+  padding-inline-start: 0.5rem;
+  text-transform: uppercase;
 }

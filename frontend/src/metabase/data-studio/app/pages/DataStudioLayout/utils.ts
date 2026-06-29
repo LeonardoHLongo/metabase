@@ -1,6 +1,7 @@
 import * as Urls from "metabase/urls";
 
 type TabName =
+  | "guide"
   | "data"
   | "library"
   | "transforms"
@@ -15,6 +16,8 @@ type TabName =
 
 export const getCurrentTab = (pathname: string): TabName => {
   switch (true) {
+    case pathname.startsWith(Urls.dataStudioGuide()):
+      return "guide";
     case pathname.startsWith(Urls.dataStudioGlossary()):
       return "glossary";
     case pathname.startsWith(Urls.dataStudioGitSync()):
@@ -35,7 +38,9 @@ export const getCurrentTab = (pathname: string): TabName => {
       return "runs";
     case pathname.startsWith(Urls.transformList()):
       return "transforms";
-    default:
+    case pathname.startsWith(Urls.dataStudioData()):
       return "data";
+    default:
+      return "guide";
   }
 };

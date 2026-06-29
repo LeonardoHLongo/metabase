@@ -55,6 +55,10 @@ export function dataStudio() {
   return ROOT_URL;
 }
 
+export function dataStudioGuide() {
+  return `${ROOT_URL}/guide`;
+}
+
 export function dataStudioData({
   databaseId,
   schemaName,

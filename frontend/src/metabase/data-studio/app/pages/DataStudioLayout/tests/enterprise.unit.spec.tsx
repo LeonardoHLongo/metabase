@@ -17,30 +17,28 @@ describe("DataStudioLayout", () => {
     jest.restoreAllMocks();
   });
 
-  describe("Set up remote sync button", () => {
-    it("should show Set up remote sync button when git settings is visible", async () => {
+  describe("Remote sync button", () => {
+    it("should show Remote sync button when git settings is visible", async () => {
       setup({ remoteSyncEnabled: false });
 
       await waitFor(() => {
         expect(screen.getByTestId("data-studio-nav")).toBeInTheDocument();
       });
 
-      expect(screen.getByLabelText("Set up remote sync")).toBeInTheDocument();
+      expect(screen.getByLabelText("Remote sync")).toBeInTheDocument();
     });
 
-    it("should hide Set up remote sync button when git settings is not visible", async () => {
+    it("should hide Remote sync button when git settings is not visible", async () => {
       setup({ ...DEFAULT_EE_SETTINGS, remoteSyncEnabled: true });
 
       await waitFor(() => {
         expect(screen.getByTestId("data-studio-nav")).toBeInTheDocument();
       });
 
-      expect(
-        screen.queryByLabelText("Set up remote sync"),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Remote sync")).not.toBeInTheDocument();
     });
 
-    it("should open modal when Set up remote sync button is clicked", async () => {
+    it("should open modal when Remote sync button is clicked", async () => {
       setup({ ...DEFAULT_EE_SETTINGS, remoteSyncEnabled: false });
 
       await waitFor(() => {
@@ -107,7 +105,7 @@ describe("DataStudioLayout", () => {
         expect(screen.getByTestId("data-studio-nav")).toBeInTheDocument();
       });
 
-      expect(screen.getByText("Library")).toBeInTheDocument();
+      expect(screen.getByText("Semantic layer")).toBeInTheDocument();
     });
 
     it("should render GitSyncAppBarControls when sidebar is expanded", async () => {
