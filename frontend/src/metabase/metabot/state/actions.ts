@@ -70,6 +70,7 @@ export const {
   destroyAgent,
   addSuggestedCodeEdit,
   removeSuggestedCodeEdit,
+  markChartSaved,
 } = metabot.actions;
 
 type HandledResponseError = {
