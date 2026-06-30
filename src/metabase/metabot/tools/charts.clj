@@ -32,7 +32,7 @@
    [:viz_settings [:map {:closed true}
                    [:chart_type chart-type-enum]]]
    [:title :string]
-   [:description {:optional true} :string]])
+   [:description :string]])
 
 (mu/defn ^{:tool-name "create_chart"
            :scope     scope/agent-viz-create}
@@ -74,7 +74,7 @@
    [:new_viz_settings [:map {:closed true}
                        [:chart_type chart-type-enum]]]
    [:title :string]
-   [:description {:optional true} :string]])
+   [:description :string]])
 
 (mu/defn ^{:tool-name "edit_chart"
            :scope     scope/agent-viz-edit}
