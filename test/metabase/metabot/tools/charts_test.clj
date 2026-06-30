@@ -19,7 +19,8 @@
               shared/*profile-id* profile-id]
       (charts/create-chart-tool {:data_source  {:query_id "q-1"}
                                  :viz_settings {:chart_type "bar"}
-                                 :title        "Orders by month"}))))
+                                 :title        "Orders by month"
+                                 :description  "Monthly count of orders."}))))
 
 (deftest create-chart-inline-viz-test
   (testing "emits a single generated_entity card part in the NLQ profile"
@@ -31,6 +32,7 @@
       (is (= "card" (:type entity)))
       (is (string? (:id entity)))
       (is (= "Orders by month" (:title entity)))
+      (is (= "Monthly count of orders." (:description entity)))
       (is (= "bar" (:display entity)))
       (testing "embeds the query so the FE can run it"
         (is (= "q-1" (get-in entity [:query :id])))
