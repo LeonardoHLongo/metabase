@@ -114,7 +114,6 @@ export function MappedFieldPicker({
         selectedFieldId={selectedFieldId}
         getTriggerElementContent={renderTriggerElement}
         hasTriggerExpandControl={false}
-        triggerTabIndex={tabIndex}
         setFieldFn={onFieldChange}
         onClose={focusSelectButton}
       />
