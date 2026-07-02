@@ -4,10 +4,13 @@ import { renderWithProviders, screen, within } from "__support__/ui";
 import type { MetabotAgentChatMessage } from "metabase/metabot/state";
 import { getMetabotInitialState } from "metabase/metabot/state/reducer-utils";
 import { createMockState } from "metabase/redux/store/mocks";
+import registerVisualizations from "metabase/visualizations/register";
 import { createMockUser } from "metabase-types/api/mocks";
 import { createMockStructuredDatasetQuery } from "metabase-types/api/mocks/query";
 
 import { AgentMessage, Messages } from "./MetabotChatMessage";
+
+registerVisualizations();
 
 const setup = (message: MetabotAgentChatMessage) =>
   renderWithProviders(
@@ -154,7 +157,6 @@ describe("UserMessage chart mentions", () => {
               "[Revenue by Product Category](metabase://chart/chart-1) test",
           },
         ]}
-        agentId="omnibot"
         isDoingScience={false}
         debug={false}
       />,
@@ -166,8 +168,9 @@ describe("UserMessage chart mentions", () => {
       },
     );
 
-    const chip = await screen.findByTestId("markdown-chart-link");
-    expect(chip).toHaveTextContent("Revenue by Product Category");
-    expect(within(chip).getByRole("img", { name: /icon/ })).toBeInTheDocument();
+    expect(
+      await screen.findByText("Revenue by Product Category"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "bar icon" })).toBeInTheDocument();
   });
 });
