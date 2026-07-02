@@ -3151,6 +3151,11 @@
            settings
            util}}
 
+  enterprise/embedder
+  {:team "Metabot"
+   :api  #{metabase-enterprise.embedder.core}
+   :uses #{util}}
+
   enterprise/embedding-hub
   {:team "Embedding"
    :api  #{metabase-enterprise.embedding-hub.api}
@@ -3170,11 +3175,6 @@
                     :model/Sandbox
                     :model/Table
                     :model/Tenant}}
-
-  enterprise/embedder
-  {:team "Metabot"
-   :api  #{metabase-enterprise.embedder.core}
-   :uses #{util}}
 
   enterprise/embeddings
   {:team "Metabot"
@@ -3494,7 +3494,6 @@
            collections
            config
            connection-pool
-           enterprise/embedder
            events
            llm
            metabot
@@ -3505,7 +3504,8 @@
            settings
            task
            tracing
-           util}
+           util
+           enterprise/embedder}
    :model-imports #{:model/Collection
                     :model/Dashboard
                     :model/Table}}
