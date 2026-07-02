@@ -3169,6 +3169,11 @@
                     :model/Table
                     :model/Tenant}}
 
+  enterprise/embedder
+  {:team "Metabot"
+   :api  #{metabase-enterprise.embedder.core}
+   :uses #{util}}
+
   enterprise/embeddings
   {:team "Metabot"
    :api  #{metabase-enterprise.embeddings.client}
