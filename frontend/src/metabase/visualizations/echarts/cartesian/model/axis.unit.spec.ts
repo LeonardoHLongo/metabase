@@ -110,6 +110,99 @@ describe("getXAxisModel", () => {
     ).toBe("2025-03-30T01:00:00Z");
   });
 
+  it("should not decode calendar bucket ECharts values into the previous bucket", () => {
+    const dateColumn = createMockDatetimeColumn({ unit: "month" });
+    const dimensionModel: DimensionModel = {
+      column: dateColumn,
+      columnIndex: 0,
+      columnByCardId: { 1: dateColumn },
+    };
+    const dataset = [
+      { [X_AXIS_DATA_KEY]: "2022-09-01T00:00:00+01:00", count: 10 },
+      { [X_AXIS_DATA_KEY]: "2022-10-01T00:00:00+01:00", count: 11 },
+    ];
+    const rawSeries = [
+      createMockSingleSeries(
+        { display: "bar" },
+        {
+          data: {
+            requested_timezone: "Europe/Lisbon",
+            results_timezone: "Europe/Lisbon",
+          },
+        },
+      ),
+    ];
+    const settings = createMockVisualizationSettings({
+      "graph.x_axis.scale": "timeseries",
+    });
+
+    const model = getXAxisModel(dimensionModel, rawSeries, dataset, settings);
+
+    expect(isTimeSeriesAxis(model)).toBe(true);
+    if (!isTimeSeriesAxis(model)) {
+      throw new Error("Expected a time-series x-axis model");
+    }
+
+    const echartsValue = model.toEChartsAxisValue("2022-09-01T00:00:00+01:00");
+
+    if (echartsValue === null) {
+      throw new Error("Expected a valid ECharts axis value");
+    }
+
+    expect(echartsValue).toBe("2022-09-01T00:00:00Z");
+    expect(
+      model
+        .fromEChartsAxisValue(dayjs.utc(echartsValue).valueOf())
+        .format("YYYY-MM-DDTHH:mm:ss[Z]"),
+    ).toBe("2022-09-01T00:00:00Z");
+  });
+
+  it("should not decode offset-based ECharts values into UTC clock time", () => {
+    const dateColumn = createMockDatetimeColumn({ unit: "hour" });
+    const dimensionModel: DimensionModel = {
+      column: dateColumn,
+      columnIndex: 0,
+      columnByCardId: { 1: dateColumn },
+    };
+    const dataset = [
+      { [X_AXIS_DATA_KEY]: "2024-09-01T00:00:00+13:00", count: 10 },
+      { [X_AXIS_DATA_KEY]: "2024-09-01T01:00:00+13:00", count: 11 },
+    ];
+    const rawSeries = [
+      createMockSingleSeries(
+        { display: "bar" },
+        {
+          data: {
+            requested_timezone: "+13:00",
+            results_timezone: "+13:00",
+          },
+        },
+      ),
+    ];
+    const settings = createMockVisualizationSettings({
+      "graph.x_axis.scale": "timeseries",
+    });
+
+    const model = getXAxisModel(dimensionModel, rawSeries, dataset, settings);
+
+    expect(isTimeSeriesAxis(model)).toBe(true);
+    if (!isTimeSeriesAxis(model)) {
+      throw new Error("Expected a time-series x-axis model");
+    }
+
+    const echartsValue = model.toEChartsAxisValue("2024-09-01T00:00:00+13:00");
+
+    if (echartsValue === null) {
+      throw new Error("Expected a valid ECharts axis value");
+    }
+
+    expect(
+      model
+        .fromEChartsAxisValue(dayjs.utc(echartsValue).valueOf())
+        .format("YYYY-MM-DDTHH:mm:ss[Z]"),
+    ).toBe("2024-09-01T00:00:00Z");
+  });
+
   it("should format untagged datetime values using the inferred temporal unit for ordinal scale (#68179)", () => {
     const dateColumn = createMockDatetimeColumn({ unit: undefined });
 
