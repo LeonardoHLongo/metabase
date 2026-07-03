@@ -194,3 +194,6 @@ __pycache__/
 
 # dependency-cruiser output
 dependency-graph.json
+
+# generated build artifacts (OpenAPI spec, etc.)
+/.tmp/
