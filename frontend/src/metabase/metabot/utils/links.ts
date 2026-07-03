@@ -85,7 +85,7 @@ export const createMetabaseProtocolLink = ({
   id,
   name,
   model,
-}: MetabaseProtocolEntity): string => {
+}: ParsedMetabaseProtocolLink & { name: string }): string => {
   return `[${name}](metabase://${model}/${id})`;
 };
 
