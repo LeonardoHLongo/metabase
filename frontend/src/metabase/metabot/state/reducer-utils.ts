@@ -205,7 +205,5 @@ export const getMetabotInitialState = (): MetabotState => {
       suggestedTransforms: [],
     },
     debugMode: false,
-    savedChartCardIds: {},
-    savedChartLocations: {},
   };
 };

@@ -12,6 +12,7 @@ import { useMetabotName } from "metabase/metabot/hooks";
 import type {
   MetabotAgentChatMessage,
   MetabotAgentDataPartMessage,
+  MetabotAgentId,
   MetabotAgentTextChatMessage,
   MetabotAgentTurnError,
   MetabotAgentTurnErroredMessage,
@@ -46,6 +47,7 @@ const isUserVisibleDataPart = (part: MetabotDataPart): boolean =>
     .with({ type: "data-navigate_to" }, () => true)
     .with({ type: "data-code_edit" }, () => true)
     .with({ type: "data-generated_entity" }, () => true)
+    .with({ type: "data-entity_saved" }, () => true)
     .with({ type: "data-adhoc_viz" }, () => false)
     .with({ type: "data-static_viz" }, () => false)
     .exhaustive();
@@ -170,6 +172,7 @@ interface AgentMessageProps extends Omit<BaseMessageProps, "message"> {
   message: MetabotAgentChatMessage;
   debug: boolean;
   readonly: boolean;
+  agentId?: MetabotAgentId;
   onRetry?: (messageId: string) => void;
   getCopyText: () => string;
   setFeedbackMessage?: (data: { messageId: string; positive: boolean }) => void;
@@ -182,6 +185,7 @@ export const AgentMessage = ({
   className,
   debug,
   readonly,
+  agentId,
   getCopyText,
   onRetry,
   setFeedbackMessage,
@@ -206,7 +210,12 @@ export const AgentMessage = ({
           </AIMarkdown>
         ))
         .with({ type: "data_part" }, (m) => (
-          <AgentDataPartMessage message={m} debug={debug} readonly={readonly} />
+          <AgentDataPartMessage
+            message={m}
+            debug={debug}
+            readonly={readonly}
+            agentId={agentId}
+          />
         ))
         .with({ type: "tool_call" }, (m) => (
           <AgentToolCallMessage message={m} />
@@ -410,6 +419,7 @@ export const Messages = ({
   isDoingScience,
   debug,
   readonly = false,
+  agentId,
   onInternalLinkClick,
 }: {
   messages: MetabotChatMessage[];
@@ -417,6 +427,7 @@ export const Messages = ({
   isDoingScience: boolean;
   debug: boolean;
   readonly?: boolean;
+  agentId?: MetabotAgentId;
   onInternalLinkClick?: (navigateToPath: string) => void;
 }) => {
   const visibleMessages = useMemo(
@@ -477,6 +488,7 @@ export const Messages = ({
             message={message}
             debug={debug}
             readonly={readonly}
+            agentId={agentId}
             onRetry={onRetryMessage}
             getCopyText={() => getAgentReplyCopyText(message.id)}
             setFeedbackMessage={(data) =>

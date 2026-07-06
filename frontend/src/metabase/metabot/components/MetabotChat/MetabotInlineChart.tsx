@@ -13,8 +13,8 @@ import { SaveQuestionModal } from "metabase/common/components/SaveQuestionModal"
 import { serializeCardForUrl } from "metabase/common/utils/card";
 import { serializeChartClipboard } from "metabase/common/utils/chart-clipboard";
 import {
+  type MetabotAgentId,
   getSavedChartCardId,
-  getSavedChartLocation,
   markChartSaved,
 } from "metabase/metabot/state";
 import { useDispatch, useSelector } from "metabase/redux";
@@ -50,9 +50,11 @@ import S from "./MetabotInlineChart.module.css";
 export function MetabotInlineChart({
   value: { id: entityId, title, description, display, query },
   readonly = false,
+  agentId = "omnibot",
 }: {
   value: GeneratedCard;
   readonly?: boolean;
+  agentId?: MetabotAgentId;
 }) {
   const datasetQuery = query.query;
   const dispatch = useDispatch();
@@ -61,9 +63,6 @@ export function MetabotInlineChart({
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const savedCardId = useSelector((state) =>
     getSavedChartCardId(state, entityId),
-  );
-  const savedLocation = useSelector((state) =>
-    getSavedChartLocation(state, entityId),
   );
   const siteUrl = useSelector((state) => getSetting(state, "site-url"));
 
@@ -125,7 +124,7 @@ export function MetabotInlineChart({
       dashboard_tab_id: options?.dashboardTabId,
     }).unwrap();
     const savedQuestion = newQuestion.setId(created.id);
-    dispatch(markChartSaved({ entityId, cardId: created.id }));
+    dispatch(markChartSaved({ agentId, entityId, cardId: created.id }));
     dispatch(
       addUndo({
         icon: "check_filled",
@@ -167,18 +166,14 @@ export function MetabotInlineChart({
           .with({ savedCardId: P.number }, ({ savedCardId }) => (
             <Button
               component={ForwardRefLink}
-              to={
-                savedLocation
-                  ? savedLocation.url
-                  : Urls.question(question.setId(savedCardId))
-              }
+              to={Urls.question(question.setId(savedCardId))}
               target="_blank"
               variant="subtle"
               color="text-secondary"
               size="compact-xs"
               leftSection={<Icon name="check" size={14} />}
             >
-              {savedLocation ? t`Saved in ${savedLocation.name}` : t`Saved`}
+              {t`Saved`}
             </Button>
           ))
           .with({ readonly: true }, () => null)
