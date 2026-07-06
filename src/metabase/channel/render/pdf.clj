@@ -47,6 +47,7 @@
    [metabase.channel.render.pdf.markdown :as md]
    [metabase.channel.render.pdf.typeset :as typeset]
    [metabase.channel.render.png :as png]
+   [metabase.channel.render.table :as table]
    [metabase.channel.render.util :as render.util]
    [metabase.channel.shared :as channel.shared]
    [metabase.dashboards.models.dashboard-card :as dashboard-card]
@@ -823,8 +824,11 @@
   width-filled, height-capped, with a row-count footer, supersampled at [[table-supersample]]x."
   ^bytes [timezone {:keys [card dashcard result]} px-w px-h]
   (let [;; Render directly, not via render-pulse-card: its <p>/.pulse-body margins escape CSSBox's
-        ;; height clip and push the image past the cell. body/render gives the bare table.
-        info     (body/render :table :inline timezone card dashcard (:data result))
+        ;; height clip and push the image past the cell. body/render gives the bare table. Opt out of the email/Slack
+        ;; fixed-width fallback for wrapping columns: CSSBox lays the table out at `px-w` and auto-wraps, so a fixed
+        ;; width would only overflow the page and clip the text (see [[table/*text-wrapping-fallback-width*]]).
+        info     (binding [table/*text-wrapping-fallback-width* nil]
+                   (body/render :table :inline timezone card dashcard (:data result)))
         n-rows   (count (get-in result [:data :rows]))
         clip-css (format "max-height:%dpx;overflow:hidden" (max 0 (- (long px-h) table-footer-px 2)))
         ;; the frame is stroked natively in draw-table-card!, so this wrapper has no border
