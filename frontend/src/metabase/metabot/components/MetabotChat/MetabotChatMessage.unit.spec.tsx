@@ -18,6 +18,7 @@ const setup = (message: MetabotAgentChatMessage) =>
     <AgentMessage
       debug={false}
       readonly={false}
+      agentId="omnibot"
       hideActions
       setFeedbackMessage={() => {}}
       submittedFeedback={undefined}
@@ -41,6 +42,7 @@ describe("AgentMessage", () => {
         ]}
         isDoingScience
         debug={false}
+        agentId="omnibot"
       />,
     );
 
@@ -138,6 +140,7 @@ describe("AgentMessage", () => {
         <AgentMessage
           debug
           readonly={false}
+          agentId="omnibot"
           hideActions
           setFeedbackMessage={() => {}}
           submittedFeedback={undefined}
@@ -189,6 +192,7 @@ describe("UserMessage chart mentions", () => {
         ]}
         isDoingScience={false}
         debug={false}
+        agentId="omnibot"
       />,
       {
         storeInitialState: createMockState({
