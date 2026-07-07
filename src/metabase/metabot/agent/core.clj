@@ -418,7 +418,7 @@
 
 (defn- init-agent
   "Initialize agent state."
-  [{:keys [messages state metabot-id profile-id context tracking-opts]}]
+  [{:keys [messages state metabot-id profile-id context tracking-opts conversation-id]}]
   (let [context      (assign-context-ids context)
         ;; Resolve the profile once (its nlq availability redirect probes the index): reuse it for both the
         ;; prompt and the tools so they can't disagree about whether the curated library tool is offered.
@@ -437,7 +437,7 @@
                          (memory/load-todos-from-state seeded)
                          (memory/load-link-registry-from-state seeded))
         memory-atom  (atom memory)
-        tools        (tools/wrap-tools-with-state base-tools memory-atom metabot-id profile-id)]
+        tools        (tools/wrap-tools-with-state base-tools memory-atom metabot-id profile-id conversation-id)]
     (log/info "Starting agent" {:profile  profile-id
                                 :tools    (count tools)
                                 :max-iter (:max-iterations profile)
@@ -609,6 +609,7 @@
             [:messages ::messages]
             [:profile-id ::profile-id]
             [:metabot-id {:optional true} [:maybe :string]]
+            [:conversation-id {:optional true} [:maybe :string]]
             [:state {:optional true} [:maybe ::state]]
             [:context {:optional true} [:maybe ::context]]
             [:tracking-opts {:optional true} [:maybe ::tracking-opts]]

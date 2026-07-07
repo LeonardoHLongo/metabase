@@ -121,12 +121,13 @@
           (transduce xf
                      (streaming-writer-rf os canceled-chan canceled?)
                      (agent/run-agent-loop
-                      (cond-> {:messages      messages
-                               :state         state
-                               :metabot-id    metabot-id
-                               :profile-id    (keyword profile-id)
-                               :context       enriched-context
-                               :tracking-opts {:session-id conversation-id}}
+                      (cond-> {:messages        messages
+                               :state           state
+                               :metabot-id      metabot-id
+                               :conversation-id conversation-id
+                               :profile-id      (keyword profile-id)
+                               :context         enriched-context
+                               :tracking-opts   {:session-id conversation-id}}
                         debug? (assoc :debug? true))))
           (catch org.eclipse.jetty.io.EofException _
             (vreset! canceled? true)
