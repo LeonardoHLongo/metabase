@@ -160,14 +160,7 @@ export function MetabotInlineChart({
       entity_id: entityId,
       card_id: created.id,
     });
-    dispatch(
-      markChartSaved({
-        agentId,
-        entity_id: entityId,
-        card_id: created.id,
-        name: title,
-      }),
-    );
+    dispatch(markChartSaved({ entityId, cardId: created.id }));
     dispatch(
       addUndo({
         icon: "check_filled",
