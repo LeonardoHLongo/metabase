@@ -7,12 +7,11 @@ import { noop } from "underscore";
 
 import {
   skipToken,
-  useCreateCardMutation,
   useGetAdhocQueryQuery,
   useGetCardQuery,
 } from "metabase/api";
 import type { GeneratedCard } from "metabase/api/ai-streaming/schemas";
-import { useRecordMetabotEntitySavedMutation } from "metabase/api/metabot";
+import { useSaveMetabotEntityMutation } from "metabase/api/metabot";
 import { ForwardRefLink } from "metabase/common/components/Link";
 import { LoadingAndErrorWrapper } from "metabase/common/components/LoadingAndErrorWrapper";
 import { SaveQuestionModal } from "metabase/common/components/SaveQuestionModal";
@@ -66,8 +65,7 @@ export function MetabotInlineChart({
   const datasetQuery = query.query;
   const dispatch = useDispatch();
   const clipboard = useClipboard();
-  const [createCard] = useCreateCardMutation();
-  const [recordEntitySaved] = useRecordMetabotEntitySavedMutation();
+  const [saveMetabotEntity] = useSaveMetabotEntityMutation();
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const recordedCardId = useSelector((state) =>
     getSavedChartCardId(state, entityId),
@@ -146,20 +144,18 @@ export function MetabotInlineChart({
     newQuestion: Question,
     options?: { dashboardTabId?: DashboardTabId },
   ) => {
-    const created = await createCard({
-      ...newQuestion.card(),
-      dashboard_tab_id: options?.dashboardTabId,
-    }).unwrap();
-    const savedQuestion = newQuestion.setId(created.id);
-    // Stamp the card's Metabot provenance columns BEFORE flipping the chart to
-    // "Saved" — the saved state is verified against the card, so stamping after
-    // would race the verification fetch. Best-effort: the conversation row may
-    // not exist yet on the server, and the save itself already succeeded.
-    await recordEntitySaved({
+    // One request creates the card AND stamps its Metabot provenance columns, so
+    // the two cannot desync and the saved-state verification fetch never races
+    // the stamp.
+    const created = await saveMetabotEntity({
       conversation_id: conversationId,
       entity_id: entityId,
-      card_id: created.id,
-    });
+      card: {
+        ...newQuestion.card(),
+        dashboard_tab_id: options?.dashboardTabId,
+      },
+    }).unwrap();
+    const savedQuestion = newQuestion.setId(created.id);
     dispatch(markChartSaved({ entityId, cardId: created.id }));
     dispatch(
       addUndo({
