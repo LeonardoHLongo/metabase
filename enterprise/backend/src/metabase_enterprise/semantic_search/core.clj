@@ -184,13 +184,14 @@
 
 (defenterprise repair-index!
   "Brings the semantic search index into consistency with the provided document set.
-  Does not fully reinitialize the index, but will add missing documents and remove stale ones."
+  Does not fully reinitialize the index, but will add missing documents and remove stale ones.
+  Returns the number of lost deletes (orphans) it found, so callers can feed the garbage health metric."
   :feature :semantic-search
   [searchable-documents]
   (let [pgvector       (semantic.env/get-pgvector-datasource!)
         index-metadata (semantic.env/get-index-metadata)]
     (if-not (index-active? pgvector index-metadata)
-      (log/debug "repair-index! called prior to init!")
+      (do (log/debug "repair-index! called prior to init!") 0)
       (semantic.repair/with-repair-table!
         pgvector
         (fn [repair-table-name]
@@ -198,10 +199,11 @@
           (semantic.pgvector-api/gate-updates! pgvector index-metadata searchable-documents
                                                :repair-table repair-table-name)
           ;; Find documents in the gate table that are not in the provided searchable-documents, and gate deletes for them
-          (when-let [ids-by-model (semantic.repair/find-lost-deletes-by-model pgvector (:gate-table-name index-metadata) repair-table-name)]
+          (let [ids-by-model (semantic.repair/find-lost-deletes-by-model pgvector (:gate-table-name index-metadata) repair-table-name)]
             (doseq [[model ids] ids-by-model]
               (log/infof "Repairing lost deletes for model %s: deleting %d documents" model (count ids))
-              (semantic.pgvector-api/gate-deletes! pgvector index-metadata model ids))))))))
+              (semantic.pgvector-api/gate-deletes! pgvector index-metadata model ids))
+            (reduce + 0 (map (comp count val) ids-by-model))))))))
 
 (comment
   (update-index! [{:model "card"
