@@ -85,7 +85,10 @@
 
 (defmethod task/init! ::SemanticMetricCollector
   [_]
-  (when (semantic.u/semantic-search-available?)
+  ;; Gate scheduling on pgvector being configured (boot-fixed), NOT semantic-search-available? (feature+db):
+  ;; the token is often entered after boot, and collect-metrics! already self-gates each run, so this lets the
+  ;; AI-index gauges start emitting once the feature is licensed without a restart.
+  (when (semantic.u/pgvector-configured?)
     (let [job (jobs/build
                (jobs/of-type SemanticMetricCollector)
                (jobs/with-identity collector-job-key))

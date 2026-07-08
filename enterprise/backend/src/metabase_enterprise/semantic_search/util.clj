@@ -23,8 +23,15 @@
                          {:builder-fn jdbc.rs/as-unqualified-lower-maps})
       (:index_exists false)))
 
+(defn pgvector-configured?
+  "Whether a pgvector store is configured (read once at boot from MB_PGVECTOR_DB_URL). Periodic tasks gate
+  their *scheduling* on this -- boot-fixed -- so a task survives the license being entered after startup; the
+  task body re-checks [[semantic-search-available?]] each run."
+  []
+  (string? (not-empty semantic.db.datasource/db-url)))
+
 (defn semantic-search-available?
   "Predicate to check whether semantic search is available on the instance."
   []
-  (and (string? (not-empty semantic.db.datasource/db-url))
+  (and (pgvector-configured?)
        (premium-features/has-feature? :semantic-search)))
