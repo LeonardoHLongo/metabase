@@ -120,7 +120,7 @@ function DataStudioNav({ isNavbarOpened, onNavbarToggle }: DataStudioNavProps) {
           <NavSection className={S.guideSection}>
             <DataStudioTab
               label={t`Guide`}
-              icon="learn"
+              icon="book_open"
               to={Urls.dataStudioGuide()}
               isSelected={currentTab === "guide"}
               showLabel={isNavbarOpened}
@@ -131,7 +131,7 @@ function DataStudioNav({ isNavbarOpened, onNavbarToggle }: DataStudioNavProps) {
             {canAccessDataModel && (
               <DataStudioTab
                 label={t`Connected data`}
-                icon="open_folder"
+                icon="database"
                 to={Urls.dataStudioData()}
                 isSelected={currentTab === "data"}
                 showLabel={isNavbarOpened}
