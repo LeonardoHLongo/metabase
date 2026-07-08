@@ -437,7 +437,10 @@
                          (memory/load-todos-from-state seeded)
                          (memory/load-link-registry-from-state seeded))
         memory-atom  (atom memory)
-        tools        (tools/wrap-tools-with-state base-tools memory-atom metabot-id profile-id conversation-id)]
+        tools        (tools/wrap-tools-with-state base-tools memory-atom
+                                                  {:metabot-id      metabot-id
+                                                   :profile-id      profile-id
+                                                   :conversation-id conversation-id})]
     (log/info "Starting agent" {:profile  profile-id
                                 :tools    (count tools)
                                 :max-iter (:max-iterations profile)
