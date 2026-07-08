@@ -22,6 +22,12 @@
   "The database URL used to connect to pgvector"
   (env :mb-pgvector-db-url))
 
+(defn pgvector-configured?
+  "True when a pgvector store is configured (read once at boot from MB_PGVECTOR_DB_URL). Boot-fixed, so
+  periodic tasks can gate their *scheduling* on it and still survive the license being entered post-boot."
+  []
+  (string? (not-empty db-url)))
+
 ;; All pgvector config — connection *and* connection-pool parameters — rides MB_PGVECTOR_DB_URL, so a
 ;; deployment sets everything in one place (the DB secret) with no env-var-vs-URL precedence to reason
 ;; about. c3p0 pool params can't ride the JDBC URL into the driver, so we parse them out here (see
