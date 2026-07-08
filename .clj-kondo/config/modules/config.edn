@@ -200,7 +200,6 @@
            metabase.ai-tracing.core}
    :uses #{api
            settings
-           tracing
            util}}
 
   analytics
