@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, within } from "__support__/ui";
+import { renderWithProviders, screen } from "__support__/ui";
 
 import { GuidePage } from "./GuidePage";
 
@@ -28,28 +28,18 @@ describe("GuidePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows section content and action buttons", () => {
+  it("shows section content without action buttons", () => {
     renderWithProviders(<GuidePage />);
 
     expect(screen.getByTestId("guide-transforms-section")).toHaveTextContent(
-      /Transforms let you preprocess, clean, join, and reshape data/,
+      /Find them under Data transformation/,
     );
     expect(screen.getByTestId("guide-publish-section")).toHaveTextContent(
-      /Start in Connected data to browse every table/,
+      /Connected data is where you browse synced tables/,
     );
     expect(screen.getByTestId("guide-define-section")).toHaveTextContent(
-      /Segments are saved filters on a table/,
+      /Define segments and measures on a table/,
     );
-    expect(
-      within(screen.getByTestId("guide-define-section")).getByRole("button", {
-        name: "Go to the Semantic layer",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Go to transforms" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "View your connected data" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

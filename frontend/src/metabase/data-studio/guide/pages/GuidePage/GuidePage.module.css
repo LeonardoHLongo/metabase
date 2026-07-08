@@ -13,18 +13,6 @@
   overflow: visible;
 }
 
-.section {
-  padding: 2rem 2.5rem;
-}
-
-.section:first-child {
-  padding-top: 2.5rem;
-}
-
-.section:last-child {
-  padding-bottom: 2.5rem;
-}
-
-.divider {
-  margin: 0;
+.cardContent {
+  padding: 2.5rem;
 }
