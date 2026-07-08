@@ -141,8 +141,7 @@
                                                (swap! logged-messages conj {:level level :message message}))
                                     transform-run/running-run-for-transform-id (constantly nil)
                                     transforms.execute/execute! (fn [_ _]
-                                                                  (reset! run-called? true))
-                                    transforms.job-run/add-run-activity! (constantly nil)]
+                                                                  (reset! run-called? true))]
           (#'jobs/run-transform! {:parent-run [:job run-id] :run-method :scheduled :user-id nil
                                   :add-run-activity! (constantly nil)}
                                  (promise) query-transform)
@@ -186,8 +185,7 @@
                                                (swap! logged-messages conj {:level level :message message}))
                                     transform-run/running-run-for-transform-id (constantly nil)
                                     transforms.execute/execute! (fn [_ _]
-                                                                  (reset! run-called? true))
-                                    transforms.job-run/add-run-activity! (constantly nil)]
+                                                                  (reset! run-called? true))]
           (#'jobs/run-transform! {:parent-run [:job run-id] :run-method :scheduled :user-id nil
                                   :add-run-activity! (constantly nil)}
                                  (promise) query-transform)
@@ -218,8 +216,7 @@
             (mt/with-dynamic-fn-redefs [log/log* (fn [_ level _ message]
                                                    (swap! logged conj {:level level :message message}))
                                         transform-run/running-run-for-transform-id (constantly nil)
-                                        transforms.execute/execute! (fn [_ _] (reset! run-called? true))
-                                        transforms.job-run/add-run-activity! (constantly nil)]
+                                        transforms.execute/execute! (fn [_ _] (reset! run-called? true))]
               (#'jobs/run-transform! {:parent-run [:job 200] :run-method :scheduled :user-id nil
                                       :add-run-activity! (constantly nil)}
                                      (promise) transform)
@@ -235,8 +232,7 @@
           (let [transform   {:id 8 :source_type :native :source query-source :name "Unlocked"}
                 run-called? (atom false)]
             (mt/with-dynamic-fn-redefs [transform-run/running-run-for-transform-id (constantly nil)
-                                        transforms.execute/execute! (fn [_ _] (reset! run-called? true))
-                                        transforms.job-run/add-run-activity! (constantly nil)]
+                                        transforms.execute/execute! (fn [_ _] (reset! run-called? true))]
               (#'jobs/run-transform! {:parent-run [:job 201] :run-method :scheduled :user-id nil
                                       :add-run-activity! (constantly nil)}
                                      (promise) transform)
@@ -249,8 +245,7 @@
           (let [transform   {:id 9 :source_type :native :source query-source :name "Non-metered"}
                 run-called? (atom false)]
             (mt/with-dynamic-fn-redefs [transform-run/running-run-for-transform-id (constantly nil)
-                                        transforms.execute/execute! (fn [_ _] (reset! run-called? true))
-                                        transforms.job-run/add-run-activity! (constantly nil)]
+                                        transforms.execute/execute! (fn [_ _] (reset! run-called? true))]
               (#'jobs/run-transform! {:parent-run [:job 202] :run-method :scheduled :user-id nil
                                       :add-run-activity! (constantly nil)}
                                      (promise) transform)
