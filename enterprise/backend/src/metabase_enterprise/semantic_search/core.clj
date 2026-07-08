@@ -189,8 +189,9 @@
   :feature :semantic-search
   [searchable-documents]
   (let [pgvector       (semantic.env/get-pgvector-datasource!)
-        index-metadata (semantic.env/get-index-metadata)]
-    (if-not (index-active? pgvector index-metadata)
+        index-metadata (semantic.env/get-index-metadata)
+        active-state   (semantic.index-metadata/get-active-index-state pgvector index-metadata)]
+    (if-not active-state
       (do (log/debug "repair-index! called prior to init!") 0)
       (semantic.repair/with-repair-table!
         pgvector
@@ -199,11 +200,14 @@
           (semantic.pgvector-api/gate-updates! pgvector index-metadata searchable-documents
                                                :repair-table repair-table-name)
           ;; Find documents in the gate table that are not in the provided searchable-documents, and gate deletes for them
-          (let [ids-by-model (semantic.repair/find-lost-deletes-by-model pgvector (:gate-table-name index-metadata) repair-table-name)]
+          (when-let [ids-by-model (semantic.repair/find-lost-deletes-by-model pgvector (:gate-table-name index-metadata) repair-table-name)]
             (doseq [[model ids] ids-by-model]
               (log/infof "Repairing lost deletes for model %s: deleting %d documents" model (count ids))
-              (semantic.pgvector-api/gate-deletes! pgvector index-metadata model ids))
-            (reduce + 0 (map (comp count val) ids-by-model))))))))
+              (semantic.pgvector-api/gate-deletes! pgvector index-metadata model ids)))
+          ;; Return the garbage count for the health metric from the *active index* (rows absent from the
+          ;; candidate set), not the gate lost-delete count -- the latter includes retained tombstones for
+          ;; rows the indexer already removed, which would keep the metric inflated until tombstone cleanup.
+          (semantic.repair/count-active-orphans pgvector (-> active-state :index :table-name) repair-table-name))))))
 
 (comment
   (update-index! [{:model "card"
