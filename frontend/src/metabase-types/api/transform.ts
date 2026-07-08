@@ -377,6 +377,12 @@ export type ListJobRunTransformRunsRequest = {
   runId: TransformJobRunId;
 };
 
+// POST /api/transform-job/:jobId/runs/:runId/cancel
+export type CancelJobRunRequest = {
+  jobId: TransformJobId;
+  runId: TransformJobRunId;
+};
+
 export type TransformDagRunId = number;
 
 export const TRANSFORM_DAG_DIRECTIONS = ["upstream", "downstream"] as const;
@@ -500,6 +506,8 @@ export type ListTransformGraphRunsRequest = {
   statuses?: TransformRunStatus[];
   "transform-ids"?: TransformId[];
   "start-time"?: string;
+  "end-time"?: string;
+  "run-methods"?: TransformRunMethod[];
   "sort-column"?: TransformGraphRunSortColumn;
   "sort-direction"?: SortDirection;
 } & PaginationRequest;
