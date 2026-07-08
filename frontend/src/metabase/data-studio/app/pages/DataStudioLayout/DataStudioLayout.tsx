@@ -208,7 +208,7 @@ function DataStudioNav({ isNavbarOpened, onNavbarToggle }: DataStudioNavProps) {
 
           <NavSection heading={t`Dependencies`} showHeading={isNavbarOpened}>
             <DataStudioTab
-              label={t`Graph`}
+              label={t`Dependency graph`}
               icon="dependencies"
               to={Urls.dependencyGraph()}
               isSelected={currentTab === "dependencies"}
