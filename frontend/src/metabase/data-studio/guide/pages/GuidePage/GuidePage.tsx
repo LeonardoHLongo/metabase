@@ -26,7 +26,7 @@ export function GuidePage() {
           {t`Build your semantic layer in Data Studio`}
         </Title>
 
-        <Card className={S.card} shadow="none" withBorder>
+        <Card shadow="none" withBorder>
           <Stack className={S.cardContent} gap="2rem">
             <Box data-testid="guide-transforms-section">
               <Title mb="md" order={3}>

@@ -25,6 +25,7 @@ import {
   Group,
   Loader,
   Stack,
+  type StackProps,
   Text,
   Tooltip,
 } from "metabase/ui";
@@ -117,7 +118,7 @@ function DataStudioNav({ isNavbarOpened, onNavbarToggle }: DataStudioNavProps) {
             onNavbarToggle={onNavbarToggle}
           />
 
-          <NavSection className={S.guideSection}>
+          <NavSection mt="md">
             <DataStudioTab
               label={t`Guide`}
               icon="book_open"
@@ -266,18 +267,27 @@ type NavSectionProps = {
   className?: string;
   heading?: string;
   showHeading?: boolean;
-};
+} & StackProps;
 
 function NavSection({
   children,
   className,
   heading,
   showHeading,
+  ...rest
 }: NavSectionProps) {
   return (
-    <Stack className={cx(S.navSection, className)} gap={0}>
+    <Stack className={cx(className)} gap={0} mb="lg" {...rest}>
       {showHeading && heading != null && (
-        <Text className={S.sectionHeading}>{heading}</Text>
+        <Text
+          fz="xs"
+          fw="bold"
+          tt="uppercase"
+          c="text-secondary"
+          className={S.sectionHeading}
+        >
+          {heading}
+        </Text>
       )}
       {children}
     </Stack>
