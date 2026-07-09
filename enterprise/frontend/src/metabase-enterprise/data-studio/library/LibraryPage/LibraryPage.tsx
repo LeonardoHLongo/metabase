@@ -88,11 +88,11 @@ function LibraryPageContent() {
     clear: clearSelection,
   } = useLibraryBulkSelection(treeTableInstance.rows);
 
-  // Clear selection when entering or leaving search (the tree content changes).
-  const isSearching = searchQuery.trim().length > 0;
+  // Clear selection when changing search query
+  const trimmedSearch = searchQuery.trim();
   useEffect(() => {
     clearSelection();
-  }, [isSearching, clearSelection]);
+  }, [trimmedSearch, clearSelection]);
 
   const moveDefaultCollectionId = match(selectionSection)
     .with("data", () => tableCollection?.id)
