@@ -76,7 +76,7 @@ const setup = async (props: {
 
 describe("UpdatesSettingsPage", () => {
   it("should render a UpdatesSettingsPage", async () => {
-    setup({
+    await setup({
       isHosted: false,
       versionTag: "v1.53.8",
     });

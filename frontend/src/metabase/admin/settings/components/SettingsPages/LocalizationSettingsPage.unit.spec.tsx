@@ -54,7 +54,7 @@ const setup = async () => {
 
 describe("LocalizationSettingsPage", () => {
   it("should render a LocalizationSettingsPage", async () => {
-    setup();
+    await setup();
     expect(await screen.findByText("Instance language")).toBeInTheDocument();
     ["Report timezone", "First day of the week", "Instance settings"].forEach(
       (text) => {

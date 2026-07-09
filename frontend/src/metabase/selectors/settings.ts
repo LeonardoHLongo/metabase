@@ -13,12 +13,19 @@ import type { TokenFeature, TokenStatus, Version } from "metabase-types/api";
 const selectSessionProperties =
   sessionApi.endpoints.getSessionProperties.select();
 
+// Fallback for when neither the cache nor the bootstrap has data: the main app
+// always has the server-injected bootstrap, but the embedding SDK runs on a host
+// page with no bootstrap and reads settings before auth injects them into the cache.
+//
+// Hoisted so `getSettings` returns a stable reference
+const EMPTY_SETTINGS = {};
+
 export const getSettings: <S extends State>(state: S) => GetSettings<S> = (
   state,
 ) =>
   (selectSessionProperties(state).data ??
     window.MetabaseBootstrap ??
-    {}) as GetSettings<typeof state>;
+    EMPTY_SETTINGS) as GetSettings<typeof state>;
 
 export const getSettingsLoading = (state: State): boolean =>
   selectSessionProperties(state).isLoading;

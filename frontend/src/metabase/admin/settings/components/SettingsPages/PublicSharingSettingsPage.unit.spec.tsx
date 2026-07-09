@@ -79,7 +79,7 @@ const setup = async (enablePublicSharing = false) => {
 
 describe("PublicSharingSettingsPage", () => {
   it("should render the PublicSharingSettingsPage with public sharing disabled", async () => {
-    setup(false);
+    await setup(false);
 
     expect(
       await screen.findByText("Enable Public Sharing"),
@@ -100,7 +100,7 @@ describe("PublicSharingSettingsPage", () => {
   });
 
   it("should render the PublicSharingSettingsPage with public sharing enabled", async () => {
-    setup(true);
+    await setup(true);
     // `AdminSettingInput` renders null until the settings queries settle, and
     // the "Test …" entries come from separate public-list endpoints — so the
     // page fills in asynchronously. waitFor retries the whole set until done.

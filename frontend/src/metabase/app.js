@@ -31,7 +31,6 @@ import { createRoot } from "react-dom/client";
 import { initializePlugins } from "ee-plugins";
 import { AppThemeProvider } from "metabase/AppThemeProvider";
 import { createSnowplowTracker } from "metabase/analytics";
-import { refetchSiteSettings } from "metabase/api";
 import { ModifiedBackend } from "metabase/common/components/dnd/ModifiedBackend";
 import registerDashboardVisualizations from "metabase/dashboard/visualizations/register";
 import { initializeInteractiveEmbedding } from "metabase/embedding/interactive-embedding";
@@ -109,8 +108,6 @@ function _init(reducers, getRoutes, callback) {
 
   registerVisualizations();
   registerDashboardVisualizations();
-
-  store.dispatch(refetchSiteSettings());
 
   PLUGIN_APP_INIT_FUNCTIONS.forEach((init) => init());
 

@@ -100,6 +100,23 @@ export const sessionApi = Api.injectEndpoints({
         url: sessionPropertiesPath,
       }),
       providesTags: ["session-properties"],
+      // Settings are an app-wide, session-long concern. Keep the entry resident
+      // so `getSettings` reads stay on the live cache (never falling back to the
+      // page-load `window.MetabaseBootstrap`) and optimistic `updateQueryData`
+      // patches always have a target — even between subscriptions.
+      //
+      // This mirrors the lifetime of the settings redux slice this cache
+      // replaced: once loaded, never evicted. With the 60s default, the entry
+      // would be garbage-collected a minute after the last subscriber unmounts
+      // and reads would revert to the stale page-load bootstrap.
+      //
+      // It only disables garbage collection, not refresh: invalidating
+      // `session-properties`, `refetchSiteSettings()`, and new subscribers all
+      // still refetch as usual.
+      //
+      // Safe because this endpoint takes no argument, so this is one immortal
+      // cache entry.
+      keepUnusedDataFor: Infinity,
       onQueryStarted: (_, { queryFulfilled }) =>
         handleQueryFulfilled(queryFulfilled, (data) => {
           // Keep the non-redux settings consumers in sync. `MetabaseSettings`
