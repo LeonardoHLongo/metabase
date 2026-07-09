@@ -1,4 +1,9 @@
-import { type UnknownAction, isRejected, nanoid } from "@reduxjs/toolkit";
+import {
+  type ThunkDispatch,
+  type UnknownAction,
+  isRejected,
+  nanoid,
+} from "@reduxjs/toolkit";
 import { push } from "react-router-redux";
 import { P, isMatching, match } from "ts-pattern";
 import { t } from "ttag";
@@ -9,6 +14,8 @@ import {
   findMatchingInflightAiStreamingRequests,
 } from "metabase/api/ai-streaming";
 import type { ProcessedChatResponse } from "metabase/api/ai-streaming/process-stream";
+import { metabotApi } from "metabase/api/metabot";
+import { listTag } from "metabase/api/tags";
 import { isEmbeddingSdk } from "metabase/embedding-sdk/config";
 import { PLUGIN_AUDIT } from "metabase/plugins";
 import { setIsNativeEditorOpen } from "metabase/redux/query-builder";
@@ -17,6 +24,7 @@ import { addUndo } from "metabase/redux/undo";
 import { createAsyncThunk } from "metabase/redux/utils";
 import { getSetting } from "metabase/selectors/settings";
 import { getUser } from "metabase/selectors/user";
+import { retry } from "metabase/utils/retry";
 import { uuid } from "metabase/utils/uuid";
 import type {
   JSONValue,
@@ -74,6 +82,56 @@ export const {
   addSuggestedCodeEdit,
   removeSuggestedCodeEdit,
 } = metabot.actions;
+
+const TITLE_POLL_INTERVAL_MS = 1500;
+const TITLE_POLL_MAX_ATTEMPTS = 40;
+const TITLE_PENDING = new Error("Metabot conversation title pending");
+
+type PollConversationTitleOptions = {
+  dispatch: ThunkDispatch<State, unknown, UnknownAction>;
+  getState: () => State;
+  agentId: MetabotAgentId;
+  conversationId: string;
+};
+
+const pollConversationTitle = async ({
+  dispatch,
+  getState,
+  agentId,
+  conversationId,
+}: PollConversationTitleOptions) => {
+  const result = await retry(
+    async () => {
+      const result = await dispatch(
+        metabotApi.endpoints.getMetabotConversationTitle.initiate(
+          conversationId,
+          { forceRefetch: true, subscribe: false },
+        ),
+      );
+
+      if (result.data?.status === "pending") {
+        throw TITLE_PENDING;
+      }
+
+      return result;
+    },
+    {
+      maxRetries: TITLE_POLL_MAX_ATTEMPTS - 1,
+      shouldRetry: (error) => error === TITLE_PENDING,
+      delayMs: () => TITLE_POLL_INTERVAL_MS,
+    },
+  ).catch(() => null);
+
+  if (result?.data?.status !== "ready") {
+    return;
+  }
+
+  const convo = getMetabotConversation(getState(), agentId);
+  if (convo.conversationId === conversationId) {
+    dispatch(setConversationTitle({ agentId, title: result.data.title }));
+  }
+  dispatch(metabotApi.util.invalidateTags([listTag("metabot-conversations")]));
+};
 
 type HandledResponseError = {
   error: MetabotAgentTurnError;
@@ -403,6 +461,8 @@ export const sendAgentRequest = createAsyncThunk<
 
     let state: MetabotStateContext | undefined;
     let response: ProcessedChatResponse | undefined;
+    let receivedTitle = false;
+    let pendingTitleConversationId: string | undefined;
     try {
       // store error object streamed across the wire
       let streamedError: MetabotAgentTurnError | undefined;
@@ -428,7 +488,11 @@ export const sendAgentRequest = createAsyncThunk<
               // only update the convo state if the request is successful
               .with({ type: "data-state" }, (part) => (state = part.data))
               .with({ type: "data-chat-title" }, (part) => {
+                receivedTitle = true;
                 dispatch(setConversationTitle({ agentId, title: part.data }));
+              })
+              .with({ type: "data-chat-title-pending" }, (part) => {
+                pendingTitleConversationId = part.data.conversation_id;
               })
               .with({ type: "data-todo_list" }, (part) => {
                 pushDataPart({ type: "data_part", part });
@@ -571,6 +635,15 @@ export const sendAgentRequest = createAsyncThunk<
             ? // special case where we want to show the returned error from the backend
               { type: "message" as const, message: streamedError.message }
             : undefined,
+        });
+      }
+
+      if (pendingTitleConversationId && !receivedTitle) {
+        void pollConversationTitle({
+          dispatch,
+          getState,
+          agentId,
+          conversationId: pendingTitleConversationId,
         });
       }
 
