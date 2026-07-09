@@ -38,7 +38,7 @@ describe("GuidePage", () => {
       /Connected data is where you browse synced tables/,
     );
     expect(screen.getByTestId("guide-define-section")).toHaveTextContent(
-      /Define segments and measures on a table/,
+      /Define segments and measures on top of published tables/,
     );
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
