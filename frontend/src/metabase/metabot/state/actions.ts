@@ -57,6 +57,7 @@ export const {
   addUserMessage,
   setIsProcessing,
   setMessageExternalIds,
+  setConversationTitle,
   setNavigateToPath,
   setProfileOverride,
   toolCallStart,
@@ -426,6 +427,9 @@ export const sendAgentRequest = createAsyncThunk<
             match(part)
               // only update the convo state if the request is successful
               .with({ type: "data-state" }, (part) => (state = part.data))
+              .with({ type: "data-chat-title" }, (part) => {
+                dispatch(setConversationTitle({ agentId, title: part.data }));
+              })
               .with({ type: "data-todo_list" }, (part) => {
                 pushDataPart({ type: "data_part", part });
               })
