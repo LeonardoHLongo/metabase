@@ -1097,8 +1097,10 @@
           (throw (ex-info (format "table id present, but no table found: %s" table-id)
                           {:table-id table-id})))
       (throw (ex-info (format "table id present, but database not found: %s" table-id)
-                      {:table-id table-id
-                       :database-names (sort (t2/select-fn-vec :name :model/Table))})))))
+                      {:table-id       table-id
+                       :db-name        db-name
+                       :database-names (sort (t2/select-fn-vec :name :model/Database))
+                       :error          :metabase.models.serialization.resolve.db/database-not-found})))))
 
 (defn table->path
   "Given a `table_id` as exported by [[export-table-fk]], turn it into a `[{:model ...}]` path for the Table.
@@ -1225,8 +1227,8 @@
   [x]
   (set
    (lib.util.match/match-many x
-     [:aggregation (_opts :guard map?) (uuid :guard string?)]
-     uuid)))
+                              [:aggregation (_opts :guard map?) (uuid :guard string?)]
+                              uuid)))
 
 (declare export-mbql)
 
@@ -1262,23 +1264,23 @@
 (defn- export-mbql-ref
   [mbql]
   (lib.util.match/replace-lite (normalize-mbql-ref mbql)
-    ;; `pos-int?` guard is here to make the operation idempotent
-    [:field (opts :guard map?) (id :guard pos-int?)]
-    [:field (export-mbql-map opts) (*export-field-fk* id)]
-    ;; legacy (MBQL 4) field refs are still supported in parameter targets and in result metadata `field_ref`...
-    [:field (id :guard pos-int?) (opts :guard (some-fn map? nil?))]
-    [:field (*export-field-fk* id) (export-mbql-map opts)]
-    ;; MBQL 3 `:field-id` can (allegedly) still show up sometimes? Support it just in case.
-    [(tag :guard #{:field :field-id}) (id :guard pos-int?)]
-    [tag (*export-field-fk* id)]
-    [:dimension (dim :guard vector?)]
-    [:dimension (export-mbql-ref dim)]
-    [:metric opts (id :guard pos-int?)]
-    [:metric (export-mbql-map opts) (*export-fk* id 'Card)]
-    [:segment opts (id :guard pos-int?)]
-    [:segment (export-mbql-map opts) (*export-fk* id 'Segment)]
-    [:measure opts (id :guard pos-int?)]
-    [:measure (export-mbql-map opts) (*export-fk* id 'Measure)]))
+                               ;; `pos-int?` guard is here to make the operation idempotent
+                               [:field (opts :guard map?) (id :guard pos-int?)]
+                               [:field (export-mbql-map opts) (*export-field-fk* id)]
+                               ;; legacy (MBQL 4) field refs are still supported in parameter targets and in result metadata `field_ref`...
+                               [:field (id :guard pos-int?) (opts :guard (some-fn map? nil?))]
+                               [:field (*export-field-fk* id) (export-mbql-map opts)]
+                               ;; MBQL 3 `:field-id` can (allegedly) still show up sometimes? Support it just in case.
+                               [(tag :guard #{:field :field-id}) (id :guard pos-int?)]
+                               [tag (*export-field-fk* id)]
+                               [:dimension (dim :guard vector?)]
+                               [:dimension (export-mbql-ref dim)]
+                               [:metric opts (id :guard pos-int?)]
+                               [:metric (export-mbql-map opts) (*export-fk* id 'Card)]
+                               [:segment opts (id :guard pos-int?)]
+                               [:segment (export-mbql-map opts) (*export-fk* id 'Segment)]
+                               [:measure opts (id :guard pos-int?)]
+                               [:measure (export-mbql-map opts) (*export-fk* id 'Measure)]))
 
 (defn export-mbql
   "Given an MBQL expression, convert it to an EDN structure and turn the non-portable Database, Table and Field IDs
@@ -1335,32 +1337,32 @@
 (defn- import-mbql-update-refs
   [entity]
   (lib.util.match/replace-lite entity
-    [#{:field "field"} (opts :guard map?) (fully-qualified-name :guard vector?)]
-    [:field (import-mbql-map opts) (*import-field-fk* fully-qualified-name)]
-    ;; legacy field refs, still used in parameters and result metadata `field_ref`
-    [#{:field "field"} (fully-qualified-name :guard vector?) (opts :guard (some-fn map? nil))]
-    [:field (*import-field-fk* fully-qualified-name) (some-> opts import-mbql-update-refs)]
-    ;; MBQL 3 `:field-id` can (allegedly) still show up sometimes? Support it just in case.
-    [(tag :guard #{:field :field-id "field" "field-id"}) (id :guard vector?)]
-    [:field (*import-field-fk* id) nil]
-    [#{:metric "metric"} opts (entity-id :guard portable-id?)]
-    [:metric (import-mbql-map opts) (*import-fk* entity-id 'Card)]
-    [#{:segment "segment"} opts (entity-id :guard portable-id?)]
-    [:segment (import-mbql-map opts) (*import-fk* entity-id 'Segment)]
-    [#{:measure "measure"} opts (entity-id :guard portable-id?)]
-    [:measure (import-mbql-map opts) (*import-fk* entity-id 'Measure)]
-    ;; support legacy MBQL 4 refs for things like the serialized Audit v2 queries
-    [#{:metric "metric"} (entity-id :guard portable-id?)]
-    [:metric (*import-fk* entity-id 'Card)]
-    [#{:segment "segment"} (entity-id :guard portable-id?)]
-    [:segment (*import-fk* entity-id 'Segment)]
-    [#{:measure "measure"} (entity-id :guard portable-id?)]
-    [:measure (*import-fk* entity-id 'Measure)]))
+                               [#{:field "field"} (opts :guard map?) (fully-qualified-name :guard vector?)]
+                               [:field (import-mbql-map opts) (*import-field-fk* fully-qualified-name)]
+                               ;; legacy field refs, still used in parameters and result metadata `field_ref`
+                               [#{:field "field"} (fully-qualified-name :guard vector?) (opts :guard (some-fn map? nil))]
+                               [:field (*import-field-fk* fully-qualified-name) (some-> opts import-mbql-update-refs)]
+                               ;; MBQL 3 `:field-id` can (allegedly) still show up sometimes? Support it just in case.
+                               [(tag :guard #{:field :field-id "field" "field-id"}) (id :guard vector?)]
+                               [:field (*import-field-fk* id) nil]
+                               [#{:metric "metric"} opts (entity-id :guard portable-id?)]
+                               [:metric (import-mbql-map opts) (*import-fk* entity-id 'Card)]
+                               [#{:segment "segment"} opts (entity-id :guard portable-id?)]
+                               [:segment (import-mbql-map opts) (*import-fk* entity-id 'Segment)]
+                               [#{:measure "measure"} opts (entity-id :guard portable-id?)]
+                               [:measure (import-mbql-map opts) (*import-fk* entity-id 'Measure)]
+                               ;; support legacy MBQL 4 refs for things like the serialized Audit v2 queries
+                               [#{:metric "metric"} (entity-id :guard portable-id?)]
+                               [:metric (*import-fk* entity-id 'Card)]
+                               [#{:segment "segment"} (entity-id :guard portable-id?)]
+                               [:segment (*import-fk* entity-id 'Segment)]
+                               [#{:measure "measure"} (entity-id :guard portable-id?)]
+                               [:measure (*import-fk* entity-id 'Measure)]))
 
 (defn- import-mbql-update-maps [x]
   (lib.util.match/replace-lite x
-    (m :guard map?)
-    (import-mbql-map m)))
+                               (m :guard map?)
+                               (import-mbql-map m)))
 
 (defn- normalize-imported [x]
   (when x
@@ -1389,32 +1391,32 @@
 
 (defn- mbql-deps-vector [entity]
   (lib.util.match/match-lite entity
-    [#{:field "field"} (opts :guard map?) (id :guard vector?)]
-    (into #{(field->path id)} (mbql-deps-map opts))
-    [(tag :guard #{:metric "metric" :segment "segment" :measure "measure"})
-     (opts :guard map?)
-     (field :guard portable-id?)]
-    (into #{[{:model (case tag
-                       (:metric "metric") "Card"
-                       (:segment "segment") "Segment"
-                       (:measure "measure") "Measure")
-              :id field}]}
-          (mbql-deps-map opts))
-    ;; legacy (MBQL 4) refs
-    [#{:field "field" :field-id "field-id"} (id :guard vector?) opts]
-    (into #{(field->path id)} (mbql-deps-map opts))
-    [(tag :guard #{:metric "metric" :segment "segment" :measure "measure"}) (field :guard portable-id?)]
-    #{[{:model (case tag
-                 (:metric "metric") "Card"
-                 (:segment "segment") "Segment"
-                 (:measure "measure") "Measure")
-        :id field}]}
-    _ (reduce #(cond
-                 (map? %2)    (into %1 (mbql-deps-map %2))
-                 (vector? %2) (into %1 (mbql-deps-vector %2))
-                 :else %1)
-              #{}
-              entity)))
+                             [#{:field "field"} (opts :guard map?) (id :guard vector?)]
+                             (into #{(field->path id)} (mbql-deps-map opts))
+                             [(tag :guard #{:metric "metric" :segment "segment" :measure "measure"})
+                              (opts :guard map?)
+                              (field :guard portable-id?)]
+                             (into #{[{:model (case tag
+                                                (:metric "metric") "Card"
+                                                (:segment "segment") "Segment"
+                                                (:measure "measure") "Measure")
+                                       :id field}]}
+                                   (mbql-deps-map opts))
+                             ;; legacy (MBQL 4) refs
+                             [#{:field "field" :field-id "field-id"} (id :guard vector?) opts]
+                             (into #{(field->path id)} (mbql-deps-map opts))
+                             [(tag :guard #{:metric "metric" :segment "segment" :measure "measure"}) (field :guard portable-id?)]
+                             #{[{:model (case tag
+                                          (:metric "metric") "Card"
+                                          (:segment "segment") "Segment"
+                                          (:measure "measure") "Measure")
+                                 :id field}]}
+                             _ (reduce #(cond
+                                          (map? %2)    (into %1 (mbql-deps-map %2))
+                                          (vector? %2) (into %1 (mbql-deps-vector %2))
+                                          :else %1)
+                                       #{}
+                                       entity)))
 
 (defn- mbql-deps-map [m]
   (into #{}
@@ -1700,16 +1702,16 @@
 
 (defn- import-visualizations [entity]
   (lib.util.match/replace-lite entity
-    [#{:field "field"} (opts :guard map?) (fully-qualified-name :guard vector?)]
-    [:field (import-visualizations opts) (*import-field-fk* fully-qualified-name)]
-    ;; legacy (MBQL 4) field refs
-    [#{:field "field"} (fully-qualified-name :guard vector?) opts]
-    [:field (*import-field-fk* fully-qualified-name) (import-visualizations opts)]
-    ;; super-legacy (MBQL 3) field refs... not even sure these can still show up
-    [#{:field-id "field-id"} (fully-qualified-name :guard vector?) opts]
-    [:field-id (*import-field-fk* fully-qualified-name) (import-visualizations opts)]
-    [#{:field-id "field-id"} (fully-qualified-name :guard vector?)]
-    [:field-id (*import-field-fk* fully-qualified-name)]))
+                               [#{:field "field"} (opts :guard map?) (fully-qualified-name :guard vector?)]
+                               [:field (import-visualizations opts) (*import-field-fk* fully-qualified-name)]
+                               ;; legacy (MBQL 4) field refs
+                               [#{:field "field"} (fully-qualified-name :guard vector?) opts]
+                               [:field (*import-field-fk* fully-qualified-name) (import-visualizations opts)]
+                               ;; super-legacy (MBQL 3) field refs... not even sure these can still show up
+                               [#{:field-id "field-id"} (fully-qualified-name :guard vector?) opts]
+                               [:field-id (*import-field-fk* fully-qualified-name) (import-visualizations opts)]
+                               [#{:field-id "field-id"} (fully-qualified-name :guard vector?)]
+                               [:field-id (*import-field-fk* fully-qualified-name)]))
 
 (defn- import-column-settings [settings]
   (when settings
