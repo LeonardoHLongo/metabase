@@ -106,6 +106,11 @@ export const getMessages = createSelector(
   (convo) => convo.messages,
 );
 
+export const getMetabotConversationTitle = createSelector(
+  getMetabotConversation,
+  (convo) => convo.title,
+);
+
 export const getDeveloperMessage = createSelector(
   getMetabotConversation,
   (convo) => convo.experimental.developerMessage,
