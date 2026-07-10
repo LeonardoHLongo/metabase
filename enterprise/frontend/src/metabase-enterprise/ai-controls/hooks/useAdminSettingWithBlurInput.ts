@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useAdminSetting } from "metabase/api/utils";
 import { useBeforeUnload } from "metabase/common/hooks/use-before-unload";
@@ -6,6 +6,8 @@ import type {
   EnterpriseSettingKey,
   EnterpriseSettings,
 } from "metabase-types/api";
+
+import { useHydratedInput } from "./useHydratedInput";
 
 type StringSettingKey = {
   [K in EnterpriseSettingKey]: EnterpriseSettings[K] extends
@@ -26,26 +28,16 @@ export function useAdminSettingWithBlurInput(settingName: StringSettingKey) {
     isLoading,
     updateSetting,
   } = useAdminSetting(settingName);
-  const [inputValue, setInputValue] = useState(settingValue);
   const lastSavedRef = useRef(settingValue);
-  const hasHydrated = useRef(false);
-  const hasUserEdited = useRef(false);
 
-  // Initialise local state from the setting once it has loaded (`isLoading` is
-  // false). `hasUserEdited` keeps this from clobbering a value the user started
-  // typing before the load resolved.
-  useEffect(() => {
-    if (!hasHydrated.current && !isLoading && !hasUserEdited.current) {
-      setInputValue(settingValue);
-      lastSavedRef.current = settingValue;
-      hasHydrated.current = true;
-    }
-  }, [isLoading, settingValue]);
-
-  const handleInputChange = useCallback((value: typeof settingValue) => {
-    hasUserEdited.current = true;
-    setInputValue(value);
-  }, []);
+  const { inputValue, setInputValueFromUser: handleInputChange } =
+    useHydratedInput({
+      value: settingValue,
+      isLoading,
+      onHydrate: useCallback((value: typeof settingValue) => {
+        lastSavedRef.current = value;
+      }, []),
+    });
 
   const trimmedInput = (inputValue ?? "").trim();
   const trimmedSaved = (lastSavedRef.current ?? "").trim();

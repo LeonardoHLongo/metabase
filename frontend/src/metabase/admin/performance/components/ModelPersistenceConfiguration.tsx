@@ -11,7 +11,6 @@ import { ModelCachingScheduleWidget } from "metabase/admin/settings/components/w
 import {
   useDisablePersistMutation,
   useEnablePersistMutation,
-  useLazyGetSettingsQuery,
   useSetRefreshScheduleMutation,
 } from "metabase/api";
 import { ExternalLink } from "metabase/common/components/ExternalLink";
@@ -73,7 +72,6 @@ export const ModelPersistenceConfiguration = () => {
     "persisted-model-refresh-cron-schedule",
   );
 
-  const [refetchSiteSettings] = useLazyGetSettingsQuery();
   const [sendToast, removeToast] = useToast();
   const [enablePersist] = useEnablePersistMutation();
   const [disablePersist] = useDisablePersistMutation();
@@ -114,8 +112,8 @@ export const ModelPersistenceConfiguration = () => {
     const promise = shouldEnable
       ? enablePersist().unwrap()
       : disablePersist().unwrap();
+    // The mutations invalidate session-properties, which refetches settings.
     await resolveWithToasts([promise]);
-    refetchSiteSettings();
   };
 
   const { url: docsUrl } = useDocsUrl("data-modeling/model-persistence");
@@ -168,7 +166,6 @@ export const ModelPersistenceConfiguration = () => {
               onChange={async (value: string) => {
                 await resolveWithToasts([
                   setRefreshSchedule({ cron: value }).unwrap(),
-                  refetchSiteSettings(),
                 ]);
               }}
             />

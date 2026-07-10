@@ -2,11 +2,7 @@ import dayjs from "dayjs";
 import { type FormEvent, useState } from "react";
 import { c, t } from "ttag";
 
-import {
-  skipToken,
-  useGetUserQuery,
-  useLazyGetSettingsQuery,
-} from "metabase/api";
+import { skipToken, useGetUserQuery } from "metabase/api";
 import { CopyButton } from "metabase/common/components/CopyButton";
 import { ExternalLink } from "metabase/common/components/ExternalLink";
 import { Markdown } from "metabase/common/components/Markdown";
@@ -100,7 +96,6 @@ function GoogleSheetsConnectModal({
   folderUrl: string | null;
   serviceAccountEmail: string;
 }) {
-  const [refetchSiteSettings] = useLazyGetSettingsQuery();
   const [folderLink, setFolderLink] = useState(folderUrl ?? "");
   const [errorMessage, setErrorMessage] = useState("");
   const [linkType, setLinkType] = useState<UploadType>("folder");
@@ -126,7 +121,8 @@ function GoogleSheetsConnectModal({
     })
       .unwrap()
       .then(() => {
-        refetchSiteSettings();
+        // saveGsheetsFolderLink invalidates session-properties, which
+        // refetches settings.
         onClose(true);
       })
       .catch((response) => {

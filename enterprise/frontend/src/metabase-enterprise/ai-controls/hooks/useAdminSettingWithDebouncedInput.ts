@@ -1,5 +1,5 @@
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { c } from "ttag";
 
 import { useAdminSetting } from "metabase/api/utils";
@@ -8,6 +8,8 @@ import type {
   EnterpriseSettingKey,
   EnterpriseSettingValue,
 } from "metabase-types/api";
+
+import { useHydratedInput } from "./useHydratedInput";
 
 export const SAVE_DEBOUNCE_MS = 500;
 
@@ -20,20 +22,12 @@ export function useAdminSettingWithDebouncedInput<T>(
     isLoading,
     updateSetting,
   } = useAdminSetting(settingName);
-  const [inputValue, setInputValue] = useState<T>(settingValue as T);
-  const hasHydrated = useRef(false);
-  const hasUserEdited = useRef(false);
   const { sendErrorToast } = useMetadataToasts();
 
-  // Initialise local input state from the setting once it has loaded
-  // (`isLoading` is false). `hasUserEdited` keeps this from clobbering a value
-  // the user changed before the load resolved.
-  useEffect(() => {
-    if (!hasHydrated.current && !isLoading && !hasUserEdited.current) {
-      setInputValue((settingValue || defaultValue) as T);
-      hasHydrated.current = true;
-    }
-  }, [defaultValue, isLoading, settingValue]);
+  const { inputValue, setInputValueFromUser } = useHydratedInput<T>({
+    value: (settingValue || defaultValue) as T,
+    isLoading,
+  });
 
   const debouncedSaveSetting = useDebouncedCallback(async (value: T) => {
     const response = await updateSetting({
@@ -51,11 +45,10 @@ export function useAdminSettingWithDebouncedInput<T>(
 
   const handleInputChange = useCallback(
     (newValue: T) => {
-      hasUserEdited.current = true;
-      setInputValue(newValue);
+      setInputValueFromUser(newValue);
       debouncedSaveSetting(newValue);
     },
-    [debouncedSaveSetting],
+    [setInputValueFromUser, debouncedSaveSetting],
   );
 
   return {

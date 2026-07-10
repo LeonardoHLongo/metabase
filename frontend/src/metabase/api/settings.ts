@@ -104,7 +104,20 @@ export const settingsApi = Api.injectEndpoints({
             },
           ),
         );
-        queryFulfilled.catch(patch.undo);
+        try {
+          await queryFulfilled;
+          // When there was no cache entry to patch (e.g. the boot-time settings
+          // fetch is still in flight), fall back to invalidation — the
+          // in-flight response carries the pre-PUT snapshot, so without a
+          // refetch the write would be silently lost.
+          if (patch.patches.length === 0) {
+            dispatch(
+              sessionApi.util.invalidateTags([tag("session-properties")]),
+            );
+          }
+        } catch {
+          patch.undo();
+        }
       },
     }),
   }),

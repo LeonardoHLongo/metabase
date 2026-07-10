@@ -111,6 +111,13 @@ PLUGIN_EMBEDDING_SDK_AUTH.initAuth = async (
           authState.siteSettings as EnterpriseSettings,
         ),
       );
+      // Pin the upserted entry with a never-released subscription (it's
+      // fulfilled, so no request fires). A tag invalidation outright deletes
+      // zero-subscriber entries instead of refetching them, and an SDK host
+      // page has no bootstrap to fall back to. This mirrors the non-bootstrap
+      // path, whose refetchSiteSettings subscription below is also never
+      // released.
+      dispatch(sessionApi.endpoints.getSessionProperties.initiate());
       MetabaseSettings.setAll(authState.siteSettings as Settings);
 
       // The session handler emits the X-Metabase-Session header on every API
