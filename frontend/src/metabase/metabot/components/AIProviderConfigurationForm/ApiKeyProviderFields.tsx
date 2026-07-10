@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { c, t } from "ttag";
 
 import { useUpdateMetabotSettingsMutation } from "metabase/api";
@@ -65,7 +65,17 @@ export const ApiKeyProviderFields = ({
 
   const apiKeySettingValue = apiKeySetting?.value;
 
+  // Reset the local (dirty) key when the saved key changes, e.g. after a save
+  // or a provider switch — but not when the setting details first arrive:
+  // that's hydration, not a change, and the settings bootstrap makes the field
+  // interactive before the details load, so resetting then would wipe a key
+  // the user has already started typing.
+  const hasHydratedApiKey = useRef(false);
   useEffect(() => {
+    if (!hasHydratedApiKey.current) {
+      hasHydratedApiKey.current = apiKeySettingValue !== undefined;
+      return;
+    }
     setLocalApiKey(null);
   }, [apiKeySettingValue]);
 

@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { shallowEqual } from "react-redux";
 import { t } from "ttag";
 import _ from "underscore";
 
@@ -176,9 +177,18 @@ export const useAdminSettings = <
   );
 
   type Values = { [K in SettingNames[number]]: EnterpriseSettings[K] };
-  const values = useMemo(() => {
-    return (settings ? _.pick(settings, ...settingNames) : {}) as Values;
-  }, [settings, settingNames]);
+  // Read the values through `getSetting` so they resolve from the cache with a
+  // synchronous fallback to the bootstrap (available before the fetch
+  // resolves), the same as `useAdminSetting`. Reading `useGetSettingsQuery`
+  // data directly would return an empty bag while the fetch is in flight —
+  // and `Object.values({}).every(...)` style checks on it are vacuously true.
+  const values = useSelector(
+    (state) =>
+      Object.fromEntries(
+        settingNames.map((name) => [name, getSetting(state, name)]),
+      ) as Values,
+    shallowEqual,
+  );
 
   type Details = { [K in SettingNames[number]]: SettingDefinition<K> };
   const details = useMemo(() => {
