@@ -4,7 +4,7 @@ import DashboardS from "metabase/css/dashboard.module.css";
 import { Badge, Flex, Group, Icon, Stack, Tooltip } from "metabase/ui";
 import { measureTextWidth } from "metabase/utils/measure-text";
 import { formatValue } from "metabase/visualizations/lib/formatting/value";
-import type { ColumnSettings } from "metabase/visualizations/types";
+import type { ColumnSettings } from "metabase-types/api";
 
 import { CHANGE_TYPE_OPTIONS, type ComparisonResult } from "../compute";
 import {
@@ -132,7 +132,7 @@ export function PreviousValueComparison({
         </VariationDetails>
 
         {showsOtherValuesInTooltip && (
-          <Badge px="xs" size="xs" variant="light" w={ELLIPSIS_BADGE_WIDTH}>
+          <Badge size="xs" variant="light" w={ELLIPSIS_BADGE_WIDTH}>
             <Group align="center" h="100%">
               <Icon name="ellipsis" size={12} />
             </Group>
