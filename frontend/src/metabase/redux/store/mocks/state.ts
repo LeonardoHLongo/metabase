@@ -1,5 +1,5 @@
 import type { SdkStoreState } from "embedding-sdk-bundle/store/types";
-import type { State } from "metabase/redux/store";
+import type { SettingsState, State } from "metabase/redux/store";
 import { createMockUser } from "metabase-types/api/mocks";
 
 import { createMockAdminState } from "./admin";
@@ -19,10 +19,20 @@ import { createMockSetupState } from "./setup";
 import { createMockUploadState } from "./upload";
 import { createMockVisualizerState } from "./visualizer";
 
+/**
+ * The shape accepted (and returned) by mock-state builders and test render
+ * harnesses: `State` plus seed-only fields with no reducer behind them.
+ * `settings` is mirrored into `window.MetabaseBootstrap` below; the render
+ * harnesses strip it before it reaches `preloadedState`.
+ */
+export type StoreSeedState = State & {
+  settings: SettingsState;
+};
+
 export function createMockState<S extends Pick<SdkStoreState, "sdk">>(
   opts?: S,
 ): SdkStoreState;
-export function createMockState(opts?: Partial<State>): State;
+export function createMockState(opts?: Partial<StoreSeedState>): StoreSeedState;
 export function createMockState(opts: any) {
   const state = {
     admin: createMockAdminState(),

@@ -3,15 +3,27 @@ import { createSelector } from "@reduxjs/toolkit";
 import { sessionApi } from "metabase/api/session";
 import { getPlan } from "metabase/common/utils/plan";
 import type { State } from "metabase/redux/store";
-import type { TokenFeature, TokenStatus, Version } from "metabase-types/api";
+import type {
+  EnterpriseSettingKey,
+  EnterpriseSettings,
+  TokenFeature,
+  TokenStatus,
+  Version,
+} from "metabase-types/api";
 
 // Settings (a.k.a. session properties) live in the `getSessionProperties` RTK
 // Query cache. `getSettings` reads them from there, falling back to
 // `window.MetabaseBootstrap` (the server-injected bootstrap) so settings are
 // never empty before the first fetch resolves. In tests the render harness
 // seeds the bootstrap; pure-selector tests (no store/render) set it directly.
-const selectSessionProperties =
-  sessionApi.endpoints.getSessionProperties.select();
+//
+// The explicit annotation collapses the RTK-generated selector generics; left
+// inferred, they leak into every consumer and can push deeply-nested reducer
+// files over TypeScript's instantiation-depth limit (TS2589).
+const selectSessionProperties: (state: State) => {
+  data?: EnterpriseSettings;
+  isLoading: boolean;
+} = sessionApi.endpoints.getSessionProperties.select();
 
 // Fallback for when neither the cache nor the bootstrap has data: the main app
 // always has the server-injected bootstrap, but the embedding SDK runs on a host
@@ -20,23 +32,21 @@ const selectSessionProperties =
 // Hoisted so `getSettings` returns a stable reference
 const EMPTY_SETTINGS = {};
 
-export const getSettings: <S extends State>(state: S) => GetSettings<S> = (
-  state,
-) =>
+// Typed as `EnterpriseSettings` (a superset of the OSS `Settings`): the cache
+// holds whatever the backend returned, and reads of OSS keys narrow naturally.
+// There is no `settings` key on `State` — settings are not redux state.
+export const getSettings = (state: State): EnterpriseSettings =>
   (selectSessionProperties(state).data ??
     window.MetabaseBootstrap ??
-    EMPTY_SETTINGS) as GetSettings<typeof state>;
+    EMPTY_SETTINGS) as EnterpriseSettings;
 
 export const getSettingsLoading = (state: State): boolean =>
   selectSessionProperties(state).isLoading;
 
-type GetSettings<S extends State> = S["settings"]["values"];
-type GetSettingKey<S extends State> = keyof GetSettings<S>;
-
-export const getSetting = <S extends State, T extends GetSettingKey<S>>(
-  state: S,
+export const getSetting = <T extends EnterpriseSettingKey>(
+  state: State,
   key: T,
-): GetSettings<S>[T] => {
+): EnterpriseSettings[T] => {
   const settings = getSettings(state);
   const setting = settings[key];
   return setting;

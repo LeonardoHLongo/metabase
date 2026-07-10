@@ -12,12 +12,15 @@ import { ensureMetabaseProviderPropsStore } from "embedding-sdk-shared/lib/ensur
 import { Api } from "metabase/api";
 import { MetabaseReduxProvider } from "metabase/redux";
 import type { State } from "metabase/redux/store";
-import { createMockState } from "metabase/redux/store/mocks";
+import {
+  type StoreSeedState,
+  createMockState,
+} from "metabase/redux/store/mocks";
 import type { MantineThemeOverride } from "metabase/ui";
 import { ThemeProviderContext } from "metabase/ui/components/theme/ThemeProvider/context";
 
 export interface RenderWithSDKProvidersOptions {
-  storeInitialState?: Partial<State>;
+  storeInitialState?: Partial<StoreSeedState>;
   componentProviderProps?: Partial<MetabaseProviderProps> | null;
   theme?: MantineThemeOverride;
   // Needed for Components/Hooks that retrieve Component/Hooks from the window.METABASE_EMBEDDING_SDK_BUNDLE
@@ -43,7 +46,7 @@ export function renderWithSDKProviders(
     routing,
     settings: seededSettings,
     ...initialState
-  }: Partial<State> = createMockState(storeInitialState);
+  }: Partial<StoreSeedState> = createMockState(storeInitialState);
 
   const sdkReducerNames = Object.keys(sdkReducers);
   initialState = _.pick(
