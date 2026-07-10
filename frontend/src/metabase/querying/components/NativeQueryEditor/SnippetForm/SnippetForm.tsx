@@ -4,11 +4,11 @@ import * as Yup from "yup";
 
 import { useListCollectionsQuery } from "metabase/api";
 import FormCollectionPicker from "metabase/common/collections/containers/FormCollectionPicker";
-import { FormErrorMessage } from "metabase/common/components/FormErrorMessage";
 import { FormInput } from "metabase/common/components/FormInput";
 import { LoadingAndErrorWrapper } from "metabase/common/components/LoadingAndErrorWrapper";
 import {
   Form,
+  FormErrorMessage,
   FormProvider,
   FormSubmitButton,
   FormTextarea,
@@ -125,7 +125,7 @@ function SnippetFormInner({
                   {t`Archive`}
                 </Button>
               )}
-              <FormErrorMessage inline />
+              <FormErrorMessage data-testid="snippet-form-error" />
             </Flex>
             <Flex align="center" justify="center" gap="sm" mt="md">
               {!!onCancel && (

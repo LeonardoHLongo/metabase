@@ -3,9 +3,13 @@ import { t } from "ttag";
 import _ from "underscore";
 import * as Yup from "yup";
 
-import { FormErrorMessage } from "metabase/common/components/FormErrorMessage";
 import { FormInput } from "metabase/common/components/FormInput";
-import { Form, FormProvider, FormSubmitButton } from "metabase/forms";
+import {
+  Form,
+  FormErrorMessage,
+  FormProvider,
+  FormSubmitButton,
+} from "metabase/forms";
 import * as Errors from "metabase/utils/errors";
 import { passwordComplexityDescription } from "metabase/utils/password";
 
@@ -86,7 +90,7 @@ export const ResetPasswordForm = ({
             variant="filled"
             fullWidth
           />
-          <FormErrorMessage />
+          <FormErrorMessage mt="md" data-testid="form-error-message" />
         </Form>
       </FormProvider>
     </div>

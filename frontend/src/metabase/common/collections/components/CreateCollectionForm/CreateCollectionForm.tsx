@@ -5,7 +5,6 @@ import * as Yup from "yup";
 import { skipToken, useGetCollectionQuery } from "metabase/api";
 import FormCollectionPicker from "metabase/common/collections/containers/FormCollectionPicker";
 import { useInitialCollectionId } from "metabase/common/collections/hooks";
-import { FormErrorMessage } from "metabase/common/components/FormErrorMessage";
 import { FormFooter } from "metabase/common/components/FormFooter";
 import { FormInput } from "metabase/common/components/FormInput";
 import type {
@@ -15,6 +14,7 @@ import type {
 } from "metabase/common/components/Pickers";
 import {
   Form,
+  FormErrorMessage,
   FormProvider,
   FormSubmitButton,
   FormTextarea,
@@ -161,7 +161,7 @@ function CreateCollectionForm({
               <FormAuthorityLevelField />
             )}
             <FormFooter mt="lg">
-              <FormErrorMessage inline />
+              <FormErrorMessage />
               <Flex style={{ flexShrink: 1 }} justify="flex-end" gap="sm">
                 {!!onCancel && (
                   <Button type="button" onClick={onCancel}>{t`Cancel`}</Button>

@@ -4,11 +4,11 @@ import * as Yup from "yup";
 
 import { FormModelPicker } from "metabase/actions/containers/ActionCreator/FormModelPicker";
 import type { CreateQueryActionParams } from "metabase/actions/types";
-import { FormErrorMessage } from "metabase/common/components/FormErrorMessage";
 import { FormFooter } from "metabase/common/components/FormFooter";
 import { FormInput } from "metabase/common/components/FormInput";
 import {
   Form,
+  FormErrorMessage,
   FormProvider,
   FormSubmitButton,
   FormTextarea,
@@ -75,7 +75,7 @@ function CreateActionForm({
           />
           <FormModelPicker name="model_id" title={t`Model it's saved in`} />
           <FormFooter>
-            <FormErrorMessage inline />
+            <FormErrorMessage data-testid="create-action-form-error" />
             {!!onCancel && (
               <Button type="button" onClick={onCancel}>{t`Cancel`}</Button>
             )}
