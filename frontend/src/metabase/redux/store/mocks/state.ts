@@ -66,11 +66,18 @@ export function createMockState(opts: any) {
   // a render harness (pure-selector tests). jest-setup-env clears the
   // bootstrap between tests.
   //
+  // Jest-only: in Storybook every story module calls createMockState at module
+  // load, so writing the shared global from here would leak one story's
+  // settings into every other story (Loki caught exactly that). Story stores
+  // get their settings through the seeded query cache instead (see
+  // `getManifestStore` in `__support__/entities-store`).
+  //
   // Default settings only fill an *empty* bootstrap: a test that seeded the
   // bootstrap itself and then builds a settings-less mock state must not have
   // its seed clobbered by our defaults.
   const hasExplicitSettings = opts?.settings != null;
   if (
+    process.env.NODE_ENV === "test" &&
     typeof window !== "undefined" &&
     state.settings?.values &&
     (hasExplicitSettings || window.MetabaseBootstrap === undefined)
