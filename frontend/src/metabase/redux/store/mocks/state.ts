@@ -55,7 +55,16 @@ export function createMockState(opts: any) {
   // `getSetting`/`getSettings` resolve them on states that never pass through
   // a render harness (pure-selector tests). jest-setup-env clears the
   // bootstrap between tests.
-  if (typeof window !== "undefined" && state.settings?.values) {
+  //
+  // Default settings only fill an *empty* bootstrap: a test that seeded the
+  // bootstrap itself and then builds a settings-less mock state must not have
+  // its seed clobbered by our defaults.
+  const hasExplicitSettings = opts?.settings != null;
+  if (
+    typeof window !== "undefined" &&
+    state.settings?.values &&
+    (hasExplicitSettings || window.MetabaseBootstrap === undefined)
+  ) {
     window.MetabaseBootstrap = state.settings.values;
   }
 
