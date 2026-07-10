@@ -79,9 +79,13 @@ function DocumentProviders({
       entities: createMockEntitiesState({}),
     });
     const commonReducerNames = Object.keys(commonReducers);
+    // Keep `settings` in the picked state: it isn't a reducer key, but
+    // `getStore` turns it into the seeded `getSessionProperties` cache entry
+    // (and strips it) — dropping it here leaves the heatmap with no settings.
     const initialState = _.pick(
       storeInitialState,
       ...commonReducerNames,
+      "settings",
     ) as State;
     return getStore(commonReducers, initialState, [Api.middleware]);
   }, []);
