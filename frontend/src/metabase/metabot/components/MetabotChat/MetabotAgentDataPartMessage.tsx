@@ -9,6 +9,7 @@ import {
   useGetCardQuery,
   useGetCollectionQuery,
   useGetDashboardQuery,
+  useGetDocumentQuery,
 } from "metabase/api";
 import type { EntitySavedValue } from "metabase/api/ai-streaming/schemas";
 import { CodeEditor } from "metabase/common/components/CodeEditor";
@@ -137,15 +138,32 @@ const EntitySavedMessage = ({ value }: { value: EntitySavedValue }) => {
       ? { id: location.id, ignore_error: true }
       : skipToken,
   );
-  const container =
-    location.type === "dashboard"
-      ? dashboard && { name: dashboard.name, url: Urls.dashboard(dashboard) }
-      : collection && {
-          name: collection.name,
-          url: Urls.collection(collection),
-        };
-  const containerError =
-    location.type === "dashboard" ? dashboardError : collectionError;
+  const { data: document, error: documentError } = useGetDocumentQuery(
+    location.type === "document" ? { id: location.id } : skipToken,
+  );
+  const { container, containerError } = match(location)
+    .with({ type: "dashboard" }, () => ({
+      container: dashboard && {
+        name: dashboard.name,
+        url: Urls.dashboard(dashboard),
+      },
+      containerError: dashboardError,
+    }))
+    .with({ type: "document" }, () => ({
+      container: document && {
+        name: document.name,
+        url: Urls.document(document),
+      },
+      containerError: documentError,
+    }))
+    .with({ type: "collection" }, () => ({
+      container: collection && {
+        name: collection.name,
+        url: Urls.collection(collection),
+      },
+      containerError: collectionError,
+    }))
+    .exhaustive();
   const isContainerPending = container == null && containerError == null;
 
   if (card == null || isContainerPending) {
