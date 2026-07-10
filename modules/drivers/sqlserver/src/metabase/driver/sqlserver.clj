@@ -30,7 +30,6 @@
    [metabase.util :as u]
    [metabase.util.honey-sql-2 :as h2x]
    [metabase.util.i18n :refer [tru]]
-   [metabase.util.json :as json]
    [metabase.util.log :as log]
    [metabase.util.malli :as mu]
    [metabase.util.match :as match]
@@ -1086,20 +1085,11 @@
   [_ e]
   (= (sql-jdbc/get-sql-state e) "S0002"))
 
-(defmethod driver/insert-from-source! [:sqlserver :jsonl-file]
-  [driver db-id {:keys [columns] :as table-definition} {:keys [file]}]
-  (with-open [rdr (io/reader file)]
-    (let [lines (line-seq rdr)
-          data-rows (map (fn [line]
-                           (let [m (json/decode line)]
-                             (mapv (fn [column]
-                                     (let [value (get m (:name column))]
-                                       (if (boolean? value)
-                                         (if value 1 0)
-                                         value)))
-                                   columns)))
-                         lines)]
-      (driver/insert-from-source! driver db-id table-definition {:type :rows :data data-rows}))))
+(defmethod driver/insert-col->val [:sqlserver :jsonl-file]
+  [_driver _ _column-def value]
+  (if (boolean? value)
+    (if value 1 0)
+    value))
 
 (defmethod driver/compile-transform :sqlserver
   [driver {:keys [query output-table]}]
@@ -1113,6 +1103,15 @@
   (let [{sql-query :query sql-params :params} query
         ^String table-name (first (sql.qp/format-honeysql driver (keyword output-table)))]
     [(format "INSERT INTO %s %s" table-name sql-query) sql-params]))
+
+(defmethod driver/run-transform! [:sqlserver :table-incremental]
+  [driver transform-details opts]
+  ;; SQL Server has no row-valued `IN (...)`, so the shared `:sql` merge can't express a composite-key
+  ;; delete the default way. Ask it to use a correlated `EXISTS` instead by threading `:delete-strategy`
+  ;; through `merge-opts`; only inject it when a merge is actually happening (leave append/create alone).
+  (let [opts (cond-> opts
+               (:merge opts) (assoc-in [:merge :delete-strategy] :exists))]
+    ((get-method driver/run-transform! [:sql :table-incremental]) driver transform-details opts)))
 
 (defmethod driver/table-exists? :sqlserver
   [driver database {:keys [schema name] :as _table}]

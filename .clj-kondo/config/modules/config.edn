@@ -829,7 +829,6 @@
            metabase.driver.common
            metabase.driver.connection
            metabase.driver.ddl.interface
-           metabase.driver.h2
            metabase.driver.impl
            metabase.driver.init
            metabase.driver.mysql
@@ -1227,13 +1226,17 @@
    :api  #{metabase.mcp.api
            metabase.mcp.callback-api
            metabase.mcp.core
-           metabase.mcp.init}
+           metabase.mcp.init
+           metabase.mcp.usage}
+   :model-exports #{:model/McpSessionLog
+                    :model/McpToolCallLog}
    :uses #{agent-api
            api
            app-db
            config
            llm
            oauth-server
+           premium-features
            request
            server
            session
@@ -1944,19 +1947,11 @@
   {:team "UX West"
    :api  #{metabase.sample-data.core
            metabase.sample-data.init}
-   :uses #{config
-           models
-           permissions
-           plugins
+   :uses #{plugins
            settings
            sync
            util}
-   :model-imports #{:model/Card
-                    :model/Dashboard
-                    :model/DashboardCard
-                    :model/DataPermissions
-                    :model/Database
-                    :model/Field
+   :model-imports #{:model/Database
                     :model/Table}}
 
   search
@@ -2308,6 +2303,7 @@
            config
            lib
            lib-be
+           mcp
            permissions
            premium-features
            search
@@ -2497,7 +2493,8 @@
                     :model/QueryExecution
                     :model/Segment
                     :model/Table}
-   :uses #{lib
+   :uses #{app-db
+           lib
            lib-be
            models
            settings
@@ -2872,7 +2869,6 @@
            app-db
            audit-app
            classloader
-           config
            driver
            lib
            models
@@ -3254,6 +3250,18 @@
            premium-features}
    :model-imports #{:model/Card :model/Collection :model/Table}}
 
+  enterprise/mcp
+  {:team    "Metabot"
+   :api     #{metabase-enterprise.mcp.init}
+   :uses    #{analytics
+              mcp
+              metabot
+              premium-features
+              task
+              util}
+   :model-imports #{:model/McpSessionLog
+                    :model/McpToolCallLog}}
+
   enterprise/memoize-monitor
   {:team "Graphy"
    :api  #{metabase-enterprise.memoize-monitor.init}
@@ -3609,7 +3617,9 @@
   {:team "Graphy"
    :api  #{metabase-enterprise.transforms.api}
    :uses #{premium-features
-           enterprise/transforms-inspector}}
+           util
+           enterprise/transforms-inspector}
+   :model-imports #{:model/Transform}}
 
   enterprise/transforms-inspector
   {:team "Gadget"
