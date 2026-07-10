@@ -24,7 +24,7 @@ export function createMockState<S extends Pick<SdkStoreState, "sdk">>(
 ): SdkStoreState;
 export function createMockState(opts?: Partial<State>): State;
 export function createMockState(opts: any) {
-  return {
+  const state = {
     admin: createMockAdminState(),
     app: createMockAppState(),
     auth: createMockAuthState(),
@@ -48,4 +48,16 @@ export function createMockState(opts: any) {
     modal: createMockModalState(),
     ...opts,
   };
+
+  // There's no `settings` reducer — settings are read from the
+  // `getSessionProperties` RTK Query cache with `window.MetabaseBootstrap` as
+  // the fallback. Mirror the mock settings into the bootstrap so
+  // `getSetting`/`getSettings` resolve them on states that never pass through
+  // a render harness (pure-selector tests). jest-setup-env clears the
+  // bootstrap between tests.
+  if (typeof window !== "undefined" && state.settings?.values) {
+    window.MetabaseBootstrap = state.settings.values;
+  }
+
+  return state;
 }
