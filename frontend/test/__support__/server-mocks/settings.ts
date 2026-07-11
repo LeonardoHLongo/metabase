@@ -39,6 +39,49 @@ export function setupUpdateSettingEndpoint(
   fetchMock.put(new RegExp("/api/setting/"), { status }, { name: name });
 }
 
+/**
+ * Stateful settings mocks: PUT /api/setting/:key and PUT /api/setting mutate a
+ * shared store, and GET /api/session/properties returns it. Use this instead of
+ * the static `setupPropertiesEndpoints` + `setupUpdateSettingEndpoint` when a
+ * test saves a setting and then reads the refreshed value — settings mutations
+ * invalidate (and refetch) session-properties, so a static response would hand
+ * back the pre-save snapshot. Returns the mutable store for assertions.
+ */
+export function setupStatefulSettingsEndpoints(
+  initialSettings: Record<string, unknown>,
+) {
+  const store: Record<string, unknown> = { ...initialSettings };
+
+  fetchMock.removeRoute("get-session-properties");
+  fetchMock.get("path:/api/session/properties", () => ({ ...store }), {
+    name: "get-session-properties",
+  });
+
+  fetchMock.removeRoute("update-setting");
+  fetchMock.put(
+    new RegExp("/api/setting/(.+)"),
+    ({ url, options }) => {
+      const key = decodeURIComponent(url.split("/api/setting/")[1]);
+      const { value } = JSON.parse(options.body as string);
+      store[key] = value;
+      return { status: 204 };
+    },
+    { name: "update-setting" },
+  );
+
+  fetchMock.removeRoute("update-settings");
+  fetchMock.put(
+    "path:/api/setting",
+    ({ options }) => {
+      Object.assign(store, JSON.parse(options.body as string));
+      return { status: 204 };
+    },
+    { name: "update-settings" },
+  );
+
+  return store;
+}
+
 export function setupUpdateSettingsEndpoint(
   { status }: { status?: number } = { status: 204 },
 ) {

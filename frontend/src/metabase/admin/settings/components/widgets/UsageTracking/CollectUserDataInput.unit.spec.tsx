@@ -2,9 +2,8 @@ import userEvent from "@testing-library/user-event";
 
 import {
   findRequests,
-  setupPropertiesEndpoints,
   setupSettingsEndpoints,
-  setupUpdateSettingEndpoint,
+  setupStatefulSettingsEndpoints,
 } from "__support__/server-mocks";
 import { renderWithProviders, screen } from "__support__/ui";
 import { UndoListing } from "metabase/common/components/UndoListing";
@@ -32,8 +31,7 @@ const setup = ({
     [SETTING_NAME]: value,
   });
 
-  setupPropertiesEndpoints(settings);
-  setupUpdateSettingEndpoint();
+  setupStatefulSettingsEndpoints(settings);
   setupSettingsEndpoints([
     createMockSettingDefinition({
       key: SETTING_NAME,
