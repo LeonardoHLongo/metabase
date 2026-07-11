@@ -7,6 +7,7 @@ import type {
 import type {
   EnterpriseSettingKey,
   EnterpriseSettingValue,
+  EnterpriseSettings,
   SettingDefinition,
 } from "metabase-types/api";
 
@@ -48,7 +49,7 @@ export function setupUpdateSettingEndpoint(
  * back the pre-save snapshot. Returns the mutable store for assertions.
  */
 export function setupStatefulSettingsEndpoints(
-  initialSettings: Record<string, unknown>,
+  initialSettings: Partial<EnterpriseSettings> | Record<string, unknown>,
 ) {
   const store: Record<string, unknown> = { ...initialSettings };
 
