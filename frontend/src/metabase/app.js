@@ -31,6 +31,7 @@ import { createRoot } from "react-dom/client";
 import { initializePlugins } from "ee-plugins";
 import { AppThemeProvider } from "metabase/AppThemeProvider";
 import { createSnowplowTracker } from "metabase/analytics";
+import { refetchSiteSettings } from "metabase/api";
 import { ModifiedBackend } from "metabase/common/components/dnd/ModifiedBackend";
 import registerDashboardVisualizations from "metabase/dashboard/visualizations/register";
 import { initializeInteractiveEmbedding } from "metabase/embedding/interactive-embedding";
@@ -108,6 +109,14 @@ function _init(reducers, getRoutes, callback) {
 
   registerVisualizations();
   registerDashboardVisualizations();
+
+  // Populate the settings cache on load for every app entry. The main app also
+  // keeps a live `useGetSettingsQuery` subscription in AppComponent (so setting
+  // mutations refetch), but the public and embed entries don't mount
+  // AppComponent — without this fetch their settings cache stays empty and
+  // `getSettings` falls back to the server-injected `window.MetabaseBootstrap`,
+  // missing anything only present in the session-properties response.
+  store.dispatch(refetchSiteSettings());
 
   PLUGIN_APP_INIT_FUNCTIONS.forEach((init) => init());
 
