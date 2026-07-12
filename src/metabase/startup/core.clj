@@ -6,12 +6,10 @@
    [metabase.util.log :as log]))
 
 (defmulti def-startup-validation!
-  "Registers a startup precondition. All implementations run before any `def-startup-logic!`, in
-  unspecified order; a throw from any of them aborts startup. Use this (not `def-startup-logic!`) for
-  checks that must fail the boot before initialization logic (e.g. rejecting a removed setting), so
-  nothing expensive kicks off first.
-
-  The dispatch value can be any unique keyword and is used purely for logging.
+  "Registers a startup precondition: all run before any `def-startup-logic!`, and a throw from one aborts startup.
+  Order among validations is unspecified.
+  Use this over `def-startup-logic!` for checks that must fail the boot before initialization logic runs.
+  The dispatch value is any unique keyword, used only for logging.
 
     (defmethod startup/def-startup-validation! ::ExampleCheck [_]
       (when (misconfigured?) (throw (ex-info \"Bad config\" {}))))"
@@ -34,16 +32,22 @@
   {:arglists '([job-name-string])}
   keyword)
 
-(defn run-startup-logic!
-  "Run all `def-startup-validation!` implementations (a throw aborts startup), then all
-  `def-startup-logic!` implementations (their errors are logged and skipped). Called by metabase.core/init!"
-  []
-  (doseq [[k f] (methods def-startup-validation!)]
-    (log/infof "Running startup validation %s" (u/format-color 'green (name k)))
-    (f k))
-  (doseq [[k f] (methods def-startup-logic!)]
-    (try
-      (log/infof "Running setup logic %s %s" (u/format-color 'green (name k)) (u/emoji "☑\uFE0F"))
+(defn- run-startup-impls!
+  "Run each `[dispatch-value f]` pair in `impls`, logging each under `phase`.
+  With `abort-on-error?` a throw propagates; otherwise it is logged and the remaining pairs still run."
+  [phase impls abort-on-error?]
+  (doseq [[k f] impls]
+    (log/infof "Running %s %s" phase (u/format-color 'green (name k)))
+    (if abort-on-error?
       (f k)
-      (catch Throwable e
-        (log/errorf e "Error initializing startup logic %s" k)))))
+      (try
+        (f k)
+        (catch Throwable e
+          (log/errorf e "Error initializing startup logic %s" k))))))
+
+(defn run-startup-logic!
+  "Run all `def-startup-validation!` implementations (a throw aborts startup), then all `def-startup-logic!`
+  implementations (errors logged and skipped). Called by metabase.core/init!"
+  []
+  (run-startup-impls! "startup validation" (methods def-startup-validation!) true)
+  (run-startup-impls! "startup logic"      (methods def-startup-logic!)      false))
