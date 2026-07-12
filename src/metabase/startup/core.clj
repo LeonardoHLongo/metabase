@@ -32,22 +32,24 @@
   {:arglists '([job-name-string])}
   keyword)
 
-(defn- run-startup-impls!
-  "Run each `[dispatch-value f]` pair in `impls`, logging each under `phase`.
-  With `abort-on-error?` a throw propagates; otherwise it is logged and the remaining pairs still run."
-  [phase impls abort-on-error?]
-  (doseq [[k f] impls]
-    (log/infof "Running %s %s %s" phase (u/format-color 'green (name k)) (u/emoji "☑️"))
-    (if abort-on-error?
+(defn- run-impl!
+  "Invoke startup impl `f` for dispatch value `k`.
+  When `abort-on-error?` a throw propagates (aborting startup); otherwise it is logged and swallowed."
+  [k f abort-on-error?]
+  (if abort-on-error?
+    (f k)
+    (try
       (f k)
-      (try
-        (f k)
-        (catch Throwable e
-          (log/errorf e "Error initializing startup logic %s" k))))))
+      (catch Throwable e
+        (log/errorf e "Error initializing startup logic %s" k)))))
 
 (defn run-startup-logic!
   "Run all `def-startup-validation!` implementations (a throw aborts startup), then all `def-startup-logic!`
   implementations (errors logged and skipped). Called by metabase.core/init!"
   []
-  (run-startup-impls! "startup validation" (methods def-startup-validation!) true)
-  (run-startup-impls! "startup logic"      (methods def-startup-logic!)      false))
+  (doseq [[k f] (methods def-startup-validation!)]
+    (log/infof "Running startup validation %s" (u/format-color 'green (name k)))
+    (run-impl! k f true))
+  (doseq [[k f] (methods def-startup-logic!)]
+    (log/infof "Running setup logic %s %s" (u/format-color 'green (name k)) (u/emoji "☑\uFE0F"))
+    (run-impl! k f false)))
