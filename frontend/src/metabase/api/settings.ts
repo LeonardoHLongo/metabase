@@ -53,28 +53,6 @@ export const settingsApi = Api.injectEndpoints({
         url: `/api/setting/${encodeURIComponent(key)}`,
         body: { value },
       }),
-      // Optimistically patch the value into the session-properties cache so a
-      // subsequent read is immediately consistent, without waiting for the
-      // `invalidatesTags` refetch to land. Admin flows that save one setting
-      // and then read/modify a related one in quick succession (e.g. the
-      // formatting widgets sharing `custom-formatting`) would otherwise read a
-      // stale value and clobber the first change.
-      onQueryStarted: async ({ key, value }, { dispatch, queryFulfilled }) => {
-        const patch = dispatch(
-          sessionApi.util.updateQueryData(
-            "getSessionProperties",
-            undefined,
-            (draft) => {
-              (draft as Record<string, unknown>)[key] = value;
-            },
-          ),
-        );
-        try {
-          await queryFulfilled;
-        } catch {
-          patch.undo();
-        }
-      },
       invalidatesTags: (_, error, { key }) => {
         return invalidateTags(error, [
           tag("session-properties"),
@@ -92,24 +70,6 @@ export const settingsApi = Api.injectEndpoints({
         url: `/api/setting`,
         body: settings,
       }),
-      // Optimistically patch the saved values into the session-properties cache
-      // for immediate read consistency (see `updateSetting`).
-      onQueryStarted: async (settings, { dispatch, queryFulfilled }) => {
-        const patch = dispatch(
-          sessionApi.util.updateQueryData(
-            "getSessionProperties",
-            undefined,
-            (draft) => {
-              Object.assign(draft as Record<string, unknown>, settings);
-            },
-          ),
-        );
-        try {
-          await queryFulfilled;
-        } catch {
-          patch.undo();
-        }
-      },
       invalidatesTags: (_, error) =>
         invalidateTags(error, [
           tag("session-properties"),
