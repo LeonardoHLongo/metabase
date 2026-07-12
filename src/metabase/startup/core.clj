@@ -43,13 +43,19 @@
       (catch Throwable e
         (log/errorf e "Error initializing startup logic %s" k)))))
 
+(defn- run-startup-logic!*
+  "Run `validations` (each aborts the boot on a throw), then `logic` (throws logged and skipped).
+  Each is a seq of `[dispatch-value f]` pairs."
+  [validations logic]
+  (doseq [[k f] validations]
+    (log/infof "Running startup validation %s" (u/format-color 'green (name k)))
+    (run-impl! k f true))
+  (doseq [[k f] logic]
+    (log/infof "Running setup logic %s %s" (u/format-color 'green (name k)) (u/emoji "☑\uFE0F"))
+    (run-impl! k f false)))
+
 (defn run-startup-logic!
   "Run all `def-startup-validation!` implementations (a throw aborts startup), then all `def-startup-logic!`
   implementations (errors logged and skipped). Called by metabase.core/init!"
   []
-  (doseq [[k f] (methods def-startup-validation!)]
-    (log/infof "Running startup validation %s" (u/format-color 'green (name k)))
-    (run-impl! k f true))
-  (doseq [[k f] (methods def-startup-logic!)]
-    (log/infof "Running setup logic %s %s" (u/format-color 'green (name k)) (u/emoji "☑\uFE0F"))
-    (run-impl! k f false)))
+  (run-startup-logic!* (methods def-startup-validation!) (methods def-startup-logic!)))
