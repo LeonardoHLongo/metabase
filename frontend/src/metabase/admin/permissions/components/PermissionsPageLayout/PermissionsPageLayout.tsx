@@ -13,7 +13,7 @@ import {
 } from "metabase/admin/permissions/components/PermissionsPageLayout/PermissionsPageLayout.styled";
 import { getIsHelpReferenceOpen } from "metabase/admin/permissions/selectors/help-reference";
 import type { PermissionsGraphDiff } from "metabase/admin/permissions/types";
-import { useUpdateSettingMutation } from "metabase/api";
+import { refetchSiteSettings, useUpdateSettingMutation } from "metabase/api";
 import { ConfirmModal } from "metabase/common/components/ConfirmModal";
 import { LeaveRouteConfirmModal } from "metabase/common/components/LeaveConfirmModal";
 import { useDispatch, useSelector } from "metabase/redux";
@@ -108,9 +108,17 @@ export function PermissionsPageLayout({
     dispatch(toggleHelpReference());
   }, [dispatch]);
 
-  const handleDimissSplitPermsModal = () => {
+  const handleDimissSplitPermsModal = async () => {
     setIsSplitPermsModalDismissed(true);
-    updateSetting({ key: "show-updated-permission-modal", value: false });
+    await updateSetting({
+      key: "show-updated-permission-modal",
+      value: false,
+    });
+    // Refetch settings unconditionally, even when the PUT above fails — the
+    // modal must dismiss "even if the network request fails", and on error the
+    // mutation's tag invalidation is skipped so nothing else resyncs the cache.
+    // Mirrors the removed `updateUserSetting` thunk's `finally { refresh }`.
+    dispatch(refetchSiteSettings());
   };
 
   return (
