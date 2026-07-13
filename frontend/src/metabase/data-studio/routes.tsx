@@ -10,7 +10,7 @@ import {
   PLUGIN_WORKSPACES,
 } from "metabase/plugins";
 import type { State } from "metabase/redux/store";
-import { IndexRoute, Route, type RouteComponent } from "metabase/router";
+import { Route, type RouteComponent } from "metabase/router";
 import { getDataStudioTransformRoutes } from "metabase/transforms/routes";
 import { canAccessTransforms } from "metabase/transforms/selectors";
 import * as Urls from "metabase/urls";
@@ -39,7 +39,8 @@ export function getDataStudioRoutes(
   return (
     <Route component={CanAccessDataStudio}>
       <Route path="data-studio" component={DataStudioLayout}>
-        <IndexRoute
+        <Route
+          index
           onEnter={(_state, replace) => {
             replace(getIndexPath(store.getState()));
           }}
