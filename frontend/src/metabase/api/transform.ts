@@ -115,7 +115,11 @@ export const transformApi = Api.injectEndpoints({
         url: `/api/transform/${id}/cancel`,
       }),
       invalidatesTags: (_, error, id) =>
-        invalidateTags(error, [idTag("transform", id), tag("table")]),
+        invalidateTags(error, [
+          idTag("transform", id),
+          tag("table"),
+          listTag("transform-run"),
+        ]),
       onQueryStarted: async (id, { dispatch, queryFulfilled }) => {
         const patchResult = dispatch(
           transformApi.util.updateQueryData("getTransform", id, (draft) => {
@@ -289,7 +293,12 @@ export const transformApi = Api.injectEndpoints({
         url: `/api/transform/${id}`,
       }),
       invalidatesTags: (_, error, id) =>
-        invalidateTags(error, [listTag("transform"), idTag("transform", id)]),
+        invalidateTags(error, [
+          listTag("transform"),
+          idTag("transform", id),
+          listTag("transform-run"),
+          listTag("transform-dag-run"),
+        ]),
     }),
     deleteTransformTarget: builder.mutation<void, TransformId>({
       query: (id) => ({
