@@ -16,16 +16,11 @@ import { useLazySelector } from "embedding-sdk-shared/hooks/use-lazy-selector";
 import { useMetabaseProviderPropsStore } from "embedding-sdk-shared/hooks/use-metabase-provider-props-store";
 import { ensureMetabaseProviderPropsStore } from "embedding-sdk-shared/lib/ensure-metabase-provider-props-store";
 import { getSdkPackageVersion } from "embedding-sdk-shared/lib/get-build-info";
-import {
-  type OnBeforeRequestHandler,
-  type RequestClientInfo,
-  api,
-} from "metabase/api/client";
+import { type RequestClientInfo, api } from "metabase/api/client";
 import registerDashboardVisualizations from "metabase/dashboard/visualizations/register";
-import {
-  setEmbedPreviewHeader,
-  setRequestClientHeaders,
-} from "metabase/embedding/lib/embedding-request-auth";
+import { setEmbedPreviewHeader } from "metabase/embedding/lib/auth/set-embed-preview-header";
+import { setReactSdkEmbedReferrerHeader } from "metabase/embedding/lib/auth/set-react-sdk-embed-referrer-header";
+import { setRequestClientHeaders } from "metabase/embedding/lib/auth/set-request-client-headers";
 import {
   EMBEDDING_SDK_CONFIG,
   isEmbeddingEajs,
@@ -33,17 +28,6 @@ import {
 import { PLUGIN_API, PLUGIN_EMBEDDING_SDK } from "metabase/plugins";
 import { setBasename } from "metabase/utils/basename";
 import registerVisualizations from "metabase/visualizations/register";
-
-const reactSdkEmbedReferrerHandler: OnBeforeRequestHandler = async (
-  config,
-) => ({
-  ...config,
-  headers: {
-    ...config.headers,
-    // eslint-disable-next-line metabase/no-literal-metabase-strings -- header name
-    "X-Metabase-Embed-Referrer": window.location.href,
-  },
-});
 
 const sdkResponseErrorHandler = ({
   metabaseVersion,
@@ -127,6 +111,7 @@ export const useInitDataInternal = ({
 
   setSdkRequestClientHeadersOnce({
     name: EMBEDDING_SDK_CONFIG.metabaseClientRequestHeader,
+    identifier: EMBEDDING_SDK_CONFIG.metabaseClientRequestIdentifier,
     // Note: this is *package* version, it's undefined in EAJS
     version: sdkPackageVersion,
   });
@@ -136,7 +121,7 @@ export const useInitDataInternal = ({
   // SdkIframeEmbedRoute.tsx using the value received via postMessage.
   if (!isEmbeddingEajs()) {
     PLUGIN_EMBEDDING_SDK.onBeforeRequestHandlers.reactSdkEmbedReferrer =
-      reactSdkEmbedReferrerHandler;
+      setReactSdkEmbedReferrerHeader;
   }
 
   // Dedupe by handler identity rather than total listener count — other code
