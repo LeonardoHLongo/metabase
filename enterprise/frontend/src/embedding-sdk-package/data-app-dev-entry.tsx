@@ -8,10 +8,13 @@ import * as sdkExports from "@metabase/embedding-sdk-react";
 import * as dataAppExports from "@metabase/embedding-sdk-react/data-app";
 import {
   allowedHosts,
+  appSlug,
   bundleUrl,
   rebuiltEvent,
 } from "virtual:metabase-data-app-dev-config";
 import { createRoot } from "react-dom/client";
+
+import { ensureMetabaseProviderPropsStore } from "embedding-sdk-shared/lib/ensure-metabase-provider-props-store";
 
 import { createDataAppSandbox } from "metabase-enterprise/data_apps/sandbox";
 import { DevToolbar } from "./components/public/debug/DevToolbar/DevToolbar";
@@ -53,6 +56,10 @@ if (!root) {
   throw new Error("#root not found");
 }
 const appRoot = createRoot(root);
+
+ensureMetabaseProviderPropsStore().updateInternalProps({
+  dataApp: { name: appSlug, isDev: true },
+});
 
 const sandbox = createDataAppSandbox({
   label: "dev",
