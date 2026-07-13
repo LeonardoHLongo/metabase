@@ -4,7 +4,7 @@
    [metabase.lib.util :as lib.util]
    [metabase.util.malli :as mu]))
 
-(mu/defn current-page :- [:maybe ::lib.schema/page]
+(mu/defn ^:export current-page :- [:maybe ::lib.schema/page]
   "Return the `:page` in a query stage."
   ([query]
    (current-page query -1))
@@ -13,7 +13,7 @@
     stage-number :- :int]
    (:page (lib.util/query-stage query stage-number))))
 
-(mu/defn with-page :- ::lib.schema/query
+(mu/defn ^:export with-page :- ::lib.schema/query
   "Set or remove the `:page` in a query stage."
   ([query page]
    (with-page query -1 page))
