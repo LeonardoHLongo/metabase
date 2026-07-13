@@ -38,19 +38,19 @@ const baseColors = {
     5: "color-mix(in srgb, var(--mb-color-core-filter), white 96%)",
   },
 
-  // Deprecated Blue
+  // Nortia Purple (custom brand color — Beleza com Resultado)
   blue: {
-    100: "hsla(208, 100%, 8%, 1.00)",
-    90: "hsla(208, 89%, 14%, 1.00)",
-    80: "hsla(208, 82%, 22%, 1.00)",
-    70: "hsla(208, 80%, 31%, 1.00)",
-    60: "hsla(208, 78%, 42%, 1.00)",
-    50: "hsla(208, 68%, 53%, 1.00)",
-    40: "hsla(208, 72%, 60%, 1.00)", // brand
-    30: "hsla(208, 73%, 74%, 1.00)",
-    20: "hsla(209, 73%, 88%, 1.00)", // focus
-    10: "hsla(208, 79%, 96%, 1.00)", // baby blue
-    5: "hsla(210, 75%, 98%, 1.00)",
+    100: "hsla(286, 100%, 8%, 1.00)",
+    90: "hsla(286, 89%, 14%, 1.00)",
+    80: "hsla(286, 82%, 22%, 1.00)",
+    70: "hsla(286, 80%, 31%, 1.00)",
+    60: "hsla(286, 78%, 42%, 1.00)",
+    50: "hsla(286, 68%, 53%, 1.00)",
+    40: "hsla(286, 93%, 35%, 1.00)", // #9406ab — brand primary
+    30: "hsla(286, 73%, 55%, 1.00)", // hover
+    20: "hsla(286, 73%, 82%, 1.00)", // focus
+    10: "hsla(286, 79%, 93%, 1.00)", // light bg
+    5: "hsla(286, 75%, 97%, 1.00)",
   },
 
   // Deprecated Gray
