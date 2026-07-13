@@ -1,9 +1,0 @@
-[providers]
-# Use Docker for building Metabase
-provider = "docker"
-
-[phases.setup]
-nixPkgs = ["docker"]
-
-[docker]
-dockerfile = "Dockerfile"
