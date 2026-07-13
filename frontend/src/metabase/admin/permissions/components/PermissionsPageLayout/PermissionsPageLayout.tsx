@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { t } from "ttag";
 
 import {
@@ -16,7 +16,6 @@ import type { PermissionsGraphDiff } from "metabase/admin/permissions/types";
 import { useUpdateSettingMutation } from "metabase/api";
 import { ConfirmModal } from "metabase/common/components/ConfirmModal";
 import { LeaveRouteConfirmModal } from "metabase/common/components/LeaveConfirmModal";
-import { useToggle } from "metabase/common/hooks/use-toggle";
 import { useDispatch, useSelector } from "metabase/redux";
 import type { Route } from "metabase/router";
 import { push } from "metabase/router";
@@ -81,8 +80,15 @@ export function PermissionsPageLayout({
   helpContent,
   showSplitPermsModal: _showSplitPermsModal = false,
 }: PermissionsPageLayoutProps) {
-  const [showSplitPermsModal, { turnOff: disableSplitPermsModal }] =
-    useToggle(_showSplitPermsModal);
+  // Derive the modal's open state from the setting rather than capturing it once
+  // at mount. `show-updated-permission-modal` now resolves from the RTK Query
+  // cache (asynchronously) instead of a synchronously-hydrated redux slice, so
+  // it can flip to `true` *after* this component has mounted — a mount-time
+  // capture (`useToggle`) missed that late arrival and the modal never opened.
+  const [isSplitPermsModalDismissed, setIsSplitPermsModalDismissed] =
+    useState(false);
+  const showSplitPermsModal =
+    _showSplitPermsModal && !isSplitPermsModalDismissed;
 
   const saveError = useSelector((state) => state.admin.permissions.saveError);
   const showRefreshModal = useSelector(showRevisionChangedModal);
@@ -103,7 +109,7 @@ export function PermissionsPageLayout({
   }, [dispatch]);
 
   const handleDimissSplitPermsModal = () => {
-    disableSplitPermsModal();
+    setIsSplitPermsModalDismissed(true);
     updateSetting({ key: "show-updated-permission-modal", value: false });
   };
 
