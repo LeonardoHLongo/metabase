@@ -57,6 +57,8 @@ describe("scenarios > data apps", () => {
         .scrollIntoView()
         .should("be.visible");
 
+      cy.intercept("POST", "/api/dataset").as("dataAppQuery");
+
       H.openDataApp(APP_NAME);
       H.dataAppIframe(APP_DISPLAY_NAME).within(() => {
         cy.findByRole("heading", { name: "Orders overview" }).should(
@@ -68,6 +70,15 @@ describe("scenarios > data apps", () => {
           .should("match", /^\d+$/);
 
         cy.findByText("Subtotal", { timeout: 30000 }).should("be.visible");
+      });
+
+      // The iframe's query requests must be attributed to the data app, so
+      // query_execution analytics record which app ran them (EMB-2088).
+      cy.wait("@dataAppQuery").then(({ request }) => {
+        expect(request.headers["x-metabase-client"]).to.equal("data-app");
+        expect(request.headers["x-metabase-client-identifier"]).to.equal(
+          APP_NAME,
+        );
       });
     });
 
